@@ -13,13 +13,25 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->timestamps();
+            $table->foreignId('branch_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('role_id')->constrained()->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('name');
             $table->string('password');
             $table->rememberToken();
-            $table->timestamps();
+            $table->boolean('active')->default(true);
         });
+
+        foreach (['roles', 'branches'] as $name) {
+            Schema::table($name, function (Blueprint $table) {
+                $table->foreign('created_by_id')->references('id')->on('users')->restrictOnDelete();
+                $table->foreign('updated_by_id')->references('id')->on('users')->restrictOnDelete();
+            });
+        }
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
@@ -42,6 +54,13 @@ return new class extends Migration
      */
     public function down(): void
     {
+        foreach (['roles', 'branches'] as $name) {
+            Schema::table($name, function (Blueprint $table) {
+                $table->dropForeign(['created_by_id']);
+                $table->dropForeign(['updated_by_id']);
+            });
+        }
+
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
