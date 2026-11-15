@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('branch_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->foreignId('role_id')->constrained()->restrictOnDelete();
             $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
