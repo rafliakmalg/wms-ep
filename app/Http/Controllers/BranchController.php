@@ -6,8 +6,9 @@ use App\Http\Requests\Branch\BranchRequest;
 use App\Http\Requests\Branch\IndexBranchRequest;
 use App\Http\Resources\BranchResource;
 use App\Models\Branch;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class BranchController extends Controller
 {
@@ -24,9 +25,7 @@ class BranchController extends Controller
             });
         }
 
-        if ($param['active'] !== null) {
-            $query->where('active', $param['active']);
-        }
+        Filter::apply($query, $param['filters']);
 
         $branches = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -46,7 +45,9 @@ class BranchController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return BranchResource::make($branch);
+        $message = __('index.created', ['resource' => __('index.tables.branches.name')]);
+
+        return BranchResource::make($branch)->additional(['message' => $message]);
     }
 
     public function show(Branch $branch): BranchResource
@@ -63,13 +64,15 @@ class BranchController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return BranchResource::make($branch);
+        $message = __('index.updated', ['resource' => __('index.tables.branches.name')]);
+
+        return BranchResource::make($branch)->additional(['message' => $message]);
     }
 
-    public function destroy(Branch $branch): Response
+    public function destroy(Branch $branch): JsonResponse
     {
         $branch->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.branches.name')])]);
     }
 }

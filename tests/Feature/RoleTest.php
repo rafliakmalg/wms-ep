@@ -20,20 +20,37 @@ class RoleTest extends TestCase
         return $user;
     }
 
+    public function test_destroy_deletes_unused_role(): void
+    {
+        $this->signInAsAdmin();
+        $role = Role::factory()->create();
+
+        $this->deleteJson("/api/roles/{$role->id}")->assertOk()->assertJsonPath('message', 'Role berhasil dihapus.');
+
+        $this->assertDatabaseMissing('roles', ['id' => $role->id]);
+    }
+
+    public function test_destroy_returns_conflict_when_role_has_users(): void
+    {
+        $user = $this->signInAsAdmin();
+
+        $this->deleteJson("/api/roles/{$user->role_id}")->assertConflict();
+
+        $this->assertDatabaseHas('roles', ['id' => $user->role_id]);
+    }
+
     public function test_guest_cannot_access_roles(): void
     {
         $this->getJson('/api/roles')->assertUnauthorized();
     }
 
-    public function test_non_admin_cannot_access_roles(): void
+    public function test_index_rejects_invalid_query(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->signInAsAdmin();
 
-        $this->getJson('/api/roles')->assertForbidden();
-        $this->postJson('/api/roles', [
-            'label' => 'X',
-            'name' => 'x',
-        ])->assertForbidden();
+        $this->getJson('/api/roles?per_page=1000&sort_by=id')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['per_page', 'sort_by']);
     }
 
     public function test_index_returns_paginated_roles_and_filters_by_search(): void
@@ -51,13 +68,23 @@ class RoleTest extends TestCase
             ->assertJsonStructure(['data' => [['id', 'created_at', 'updated_at', 'created_by_id', 'updated_by_id', 'label', 'name']], 'links', 'meta']);
     }
 
-    public function test_index_rejects_invalid_query(): void
+    public function test_non_admin_cannot_access_roles(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        $this->getJson('/api/roles')->assertForbidden();
+        $this->postJson('/api/roles', [
+            'label' => 'X',
+            'name' => 'x',
+        ])->assertForbidden();
+    }
+
+    public function test_show_returns_role(): void
     {
         $this->signInAsAdmin();
+        $role = Role::factory()->create();
 
-        $this->getJson('/api/roles?per_page=1000&sort_by=id')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['per_page', 'sort_by']);
+        $this->getJson("/api/roles/{$role->id}")->assertOk()->assertJsonPath('data.id', $role->id);
     }
 
     public function test_store_creates_role_with_audit_columns(): void
@@ -69,6 +96,7 @@ class RoleTest extends TestCase
             'name' => 'supervisor',
         ])
             ->assertCreated()
+            ->assertJsonPath('message', 'Role berhasil ditambahkan.')
             ->assertJsonPath('data.name', 'supervisor')
             ->assertJsonPath('data.created_by_id', $user->id)
             ->assertJsonPath('data.updated_by_id', $user->id);
@@ -86,14 +114,6 @@ class RoleTest extends TestCase
         ])->assertJsonValidationErrors(['name']);
     }
 
-    public function test_show_returns_role(): void
-    {
-        $this->signInAsAdmin();
-        $role = Role::factory()->create();
-
-        $this->getJson("/api/roles/{$role->id}")->assertOk()->assertJsonPath('data.id', $role->id);
-    }
-
     public function test_update_changes_role_and_allows_keeping_the_same_name(): void
     {
         $user = $this->signInAsAdmin();
@@ -104,6 +124,7 @@ class RoleTest extends TestCase
             'name' => 'lama',
         ])
             ->assertOk()
+            ->assertJsonPath('message', 'Role berhasil diperbarui.')
             ->assertJsonPath('data.label', 'Baru')
             ->assertJsonPath('data.updated_by_id', $user->id);
     }
@@ -120,24 +141,5 @@ class RoleTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
-    }
-
-    public function test_destroy_deletes_unused_role(): void
-    {
-        $this->signInAsAdmin();
-        $role = Role::factory()->create();
-
-        $this->deleteJson("/api/roles/{$role->id}")->assertNoContent();
-
-        $this->assertDatabaseMissing('roles', ['id' => $role->id]);
-    }
-
-    public function test_destroy_returns_conflict_when_role_has_users(): void
-    {
-        $user = $this->signInAsAdmin();
-
-        $this->deleteJson("/api/roles/{$user->role_id}")->assertConflict();
-
-        $this->assertDatabaseHas('roles', ['id' => $user->role_id]);
     }
 }

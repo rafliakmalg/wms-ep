@@ -6,8 +6,9 @@ use App\Http\Requests\Rack\IndexRackRequest;
 use App\Http\Requests\Rack\RackRequest;
 use App\Http\Resources\RackResource;
 use App\Models\Rack;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class RackController extends Controller
 {
@@ -24,13 +25,7 @@ class RackController extends Controller
             });
         }
 
-        if ($param['warehouse_id']) {
-            $query->where('warehouse_id', $param['warehouse_id']);
-        }
-
-        if ($param['active'] !== null) {
-            $query->where('active', $param['active']);
-        }
+        Filter::apply($query, $param['filters']);
 
         $racks = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -52,7 +47,9 @@ class RackController extends Controller
 
         $rack->load('warehouse');
 
-        return RackResource::make($rack);
+        $message = __('index.created', ['resource' => __('index.tables.racks.name')]);
+
+        return RackResource::make($rack)->additional(['message' => $message]);
     }
 
     public function show(Rack $rack): RackResource
@@ -73,13 +70,15 @@ class RackController extends Controller
 
         $rack->load('warehouse');
 
-        return RackResource::make($rack);
+        $message = __('index.updated', ['resource' => __('index.tables.racks.name')]);
+
+        return RackResource::make($rack)->additional(['message' => $message]);
     }
 
-    public function destroy(Rack $rack): Response
+    public function destroy(Rack $rack): JsonResponse
     {
         $rack->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.racks.name')])]);
     }
 }

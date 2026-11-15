@@ -6,8 +6,9 @@ use App\Http\Requests\Product\IndexProductRequest;
 use App\Http\Requests\Product\ProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
@@ -26,13 +27,7 @@ class ProductController extends Controller
             });
         }
 
-        if ($param['category_id']) {
-            $query->where('category_id', $param['category_id']);
-        }
-
-        if ($param['active'] !== null) {
-            $query->where('active', $param['active']);
-        }
+        Filter::apply($query, $param['filters']);
 
         $products = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -61,7 +56,7 @@ class ProductController extends Controller
 
             $product->load(['baseUnit', 'category', 'productUnits.unit']);
 
-            $return = ProductResource::make($product);
+            $return = ProductResource::make($product)->additional(['message' => __('index.created', ['resource' => __('index.tables.products.name')])]);
         });
 
         return $return;
@@ -93,17 +88,17 @@ class ProductController extends Controller
 
             $product->load(['baseUnit', 'category', 'productUnits.unit']);
 
-            $return = ProductResource::make($product);
+            $return = ProductResource::make($product)->additional(['message' => __('index.updated', ['resource' => __('index.tables.products.name')])]);
         });
 
         return $return;
     }
 
-    public function destroy(Product $product): Response
+    public function destroy(Product $product): JsonResponse
     {
         $product->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.products.name')])]);
     }
 
     /**

@@ -10,12 +10,53 @@ class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_returns_token_and_user_with_role(): void
+    public function test_login_rejects_inactive_user(): void
     {
-        $user = User::factory()->create(['email' => 'a@example.com']);
+        User::factory()->create([
+            'username' => 'a',
+            'active' => false,
+        ]);
 
         $this->postJson('/api/auth/login', [
-            'email' => 'a@example.com',
+            'username' => 'a',
+            'password' => 'password',
+        ])
+            ->assertUnprocessable();
+    }
+
+    public function test_login_rejects_unknown_username(): void
+    {
+        $this->postJson('/api/auth/login', [
+            'username' => 'x',
+            'password' => 'password',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['username']);
+    }
+
+    public function test_login_rejects_wrong_password(): void
+    {
+        User::factory()->create(['username' => 'a']);
+
+        $this->postJson('/api/auth/login', [
+            'username' => 'a',
+            'password' => 'salah',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['username']);
+    }
+
+    public function test_login_requires_username_and_password(): void
+    {
+        $this->postJson('/api/auth/login', [])->assertJsonValidationErrors(['username', 'password']);
+    }
+
+    public function test_login_returns_token_and_user_with_role(): void
+    {
+        $user = User::factory()->create(['username' => 'a']);
+
+        $this->postJson('/api/auth/login', [
+            'username' => 'a',
             'password' => 'password',
         ])
             ->assertOk()
@@ -25,45 +66,19 @@ class AuthTest extends TestCase
             ->assertJsonStructure(['data' => ['token', 'user']]);
     }
 
-    public function test_login_rejects_wrong_password(): void
+    public function test_logout_deletes_the_token(): void
     {
-        User::factory()->create(['email' => 'a@example.com']);
+        $user = User::factory()->create();
+        $token = $user->createToken('test')->plainTextToken;
 
-        $this->postJson('/api/auth/login', [
-            'email' => 'a@example.com',
-            'password' => 'salah',
-        ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['email']);
+        $this->withToken($token)->postJson('/api/auth/logout')->assertNoContent();
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
-    public function test_login_rejects_unknown_email(): void
+    public function test_me_requires_authentication(): void
     {
-        $this->postJson('/api/auth/login', [
-            'email' => 'x@example.com',
-            'password' => 'password',
-        ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['email']);
-    }
-
-    public function test_login_rejects_inactive_user(): void
-    {
-        User::factory()->create([
-            'email' => 'a@example.com',
-            'active' => false,
-        ]);
-
-        $this->postJson('/api/auth/login', [
-            'email' => 'a@example.com',
-            'password' => 'password',
-        ])
-            ->assertUnprocessable();
-    }
-
-    public function test_login_requires_email_and_password(): void
-    {
-        $this->postJson('/api/auth/login', [])->assertJsonValidationErrors(['email', 'password']);
+        $this->getJson('/api/auth/me')->assertUnauthorized();
     }
 
     public function test_me_returns_current_user_with_role(): void
@@ -77,18 +92,17 @@ class AuthTest extends TestCase
             ->assertJsonPath('data.role.id', $user->role_id);
     }
 
-    public function test_me_requires_authentication(): void
+    public function test_seeded_users_can_login_with_the_default_password(): void
     {
-        $this->getJson('/api/auth/me')->assertUnauthorized();
-    }
+        $this->seed();
 
-    public function test_logout_deletes_the_token(): void
-    {
-        $user = User::factory()->create();
-        $token = $user->createToken('test')->plainTextToken;
-
-        $this->withToken($token)->postJson('/api/auth/logout')->assertNoContent();
-
-        $this->assertDatabaseCount('personal_access_tokens', 0);
+        foreach (['admin', 'supervisor', 'operator'] as $role) {
+            $this->postJson('/api/auth/login', [
+                'username' => "testing_{$role}",
+                'password' => 'admin123',
+            ])
+                ->assertOk()
+                ->assertJsonPath('data.user.role.name', $role);
+        }
     }
 }

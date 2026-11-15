@@ -3,15 +3,16 @@
 namespace App\Http\Requests\Product;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Product;
 use Illuminate\Validation\Rule;
 
 class IndexProductRequest extends IndexRequest
 {
+    protected string $model = Product::class;
+
     protected function defaults(): array
     {
         return [
-            'active' => null,
-            'category_id' => null,
             'sort_by' => 'name',
         ];
     }
@@ -23,8 +24,6 @@ class IndexProductRequest extends IndexRequest
     {
         return [
             ...parent::rules(),
-            'active' => ['nullable', 'boolean'],
-            'category_id' => ['nullable', 'integer'],
             'sort_by' => ['string', Rule::in(['created_at', 'name', 'sku'])],
         ];
     }

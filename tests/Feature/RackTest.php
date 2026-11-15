@@ -21,81 +21,6 @@ class RackTest extends TestCase
         return $user;
     }
 
-    public function test_guest_cannot_access_racks(): void
-    {
-        $this->getJson('/api/racks')->assertUnauthorized();
-    }
-
-    public function test_index_returns_racks_with_warehouse(): void
-    {
-        $this->signIn();
-        Rack::factory()->count(3)->create();
-
-        $this->getJson('/api/racks?per_page=2')
-            ->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonPath('meta.total', 3)
-            ->assertJsonStructure(['data' => [['id', 'warehouse_id', 'code', 'name', 'active', 'warehouse' => ['id', 'code']]], 'links', 'meta']);
-    }
-
-    public function test_index_filters_by_search_warehouse_and_active(): void
-    {
-        $this->signIn();
-        $warehouse = Warehouse::factory()->create();
-        Rack::factory()->create([
-            'warehouse_id' => $warehouse->id,
-            'code' => 'A-01',
-        ]);
-        Rack::factory()->create([
-            'warehouse_id' => $warehouse->id,
-            'code' => 'B-01',
-            'active' => false,
-        ]);
-        Rack::factory()->create(['code' => 'A-02']);
-
-        $this->getJson('/api/racks?search=A-0')->assertJsonCount(2, 'data');
-        $this->getJson("/api/racks?warehouse_id={$warehouse->id}")->assertJsonCount(2, 'data');
-        $this->getJson("/api/racks?warehouse_id={$warehouse->id}&active=0")
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.code', 'B-01');
-    }
-
-    public function test_index_rejects_invalid_query(): void
-    {
-        $this->signIn();
-
-        $this->getJson('/api/racks?per_page=1000&sort_by=id')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['per_page', 'sort_by']);
-    }
-
-    public function test_store_creates_rack_with_audit_columns(): void
-    {
-        $user = $this->signIn();
-        $warehouse = Warehouse::factory()->create();
-
-        $this->postJson('/api/racks', [
-            'code' => 'A-01',
-            'warehouse_id' => $warehouse->id,
-        ])
-            ->assertCreated()
-            ->assertJsonPath('data.warehouse.id', $warehouse->id)
-            ->assertJsonPath('data.active', true)
-            ->assertJsonPath('data.created_by_id', $user->id);
-    }
-
-    public function test_store_validates_input(): void
-    {
-        $this->signIn();
-
-        $this->postJson('/api/racks', [])->assertJsonValidationErrors(['code', 'warehouse_id']);
-        $this->postJson('/api/racks', [
-            'code' => 'A-01',
-            'warehouse_id' => 9999,
-        ])
-            ->assertJsonValidationErrors(['warehouse_id']);
-    }
-
     public function test_code_is_unique_per_warehouse_only(): void
     {
         $this->signIn();
@@ -118,6 +43,64 @@ class RackTest extends TestCase
         ])->assertCreated();
     }
 
+    public function test_destroy_deletes_rack(): void
+    {
+        $this->signIn();
+        $rack = Rack::factory()->create();
+
+        $this->deleteJson("/api/racks/{$rack->id}")->assertOk()->assertJsonPath('message', 'Rak berhasil dihapus.');
+
+        $this->assertDatabaseMissing('racks', ['id' => $rack->id]);
+    }
+
+    public function test_guest_cannot_access_racks(): void
+    {
+        $this->getJson('/api/racks')->assertUnauthorized();
+    }
+
+    public function test_index_filters_by_search_warehouse_and_active(): void
+    {
+        $this->signIn();
+        $warehouse = Warehouse::factory()->create();
+        Rack::factory()->create([
+            'warehouse_id' => $warehouse->id,
+            'code' => 'A-01',
+        ]);
+        Rack::factory()->create([
+            'warehouse_id' => $warehouse->id,
+            'code' => 'B-01',
+            'active' => false,
+        ]);
+        Rack::factory()->create(['code' => 'A-02']);
+
+        $this->getJson('/api/racks?search=A-0')->assertJsonCount(2, 'data');
+        $this->getJson("/api/racks?filters[0][field]=warehouse_id&filters[0][operator]=eq&filters[0][value]={$warehouse->id}")->assertJsonCount(2, 'data');
+        $this->getJson("/api/racks?filters[0][field]=warehouse_id&filters[0][operator]=eq&filters[0][value]={$warehouse->id}&filters[1][field]=active&filters[1][operator]=eq&filters[1][value]=0")
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.code', 'B-01');
+    }
+
+    public function test_index_rejects_invalid_query(): void
+    {
+        $this->signIn();
+
+        $this->getJson('/api/racks?per_page=1000&sort_by=id')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['per_page', 'sort_by']);
+    }
+
+    public function test_index_returns_racks_with_warehouse(): void
+    {
+        $this->signIn();
+        Rack::factory()->count(3)->create();
+
+        $this->getJson('/api/racks?per_page=2')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('meta.total', 3)
+            ->assertJsonStructure(['data' => [['id', 'warehouse_id', 'code', 'name', 'active', 'warehouse' => ['id', 'code']]], 'links', 'meta']);
+    }
+
     public function test_show_returns_rack_with_warehouse(): void
     {
         $this->signIn();
@@ -127,6 +110,34 @@ class RackTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.id', $rack->id)
             ->assertJsonPath('data.warehouse.id', $rack->warehouse_id);
+    }
+
+    public function test_store_creates_rack_with_audit_columns(): void
+    {
+        $user = $this->signIn();
+        $warehouse = Warehouse::factory()->create();
+
+        $this->postJson('/api/racks', [
+            'code' => 'A-01',
+            'warehouse_id' => $warehouse->id,
+        ])
+            ->assertCreated()
+            ->assertJsonPath('message', 'Rak berhasil ditambahkan.')
+            ->assertJsonPath('data.warehouse.id', $warehouse->id)
+            ->assertJsonPath('data.active', true)
+            ->assertJsonPath('data.created_by_id', $user->id);
+    }
+
+    public function test_store_validates_input(): void
+    {
+        $this->signIn();
+
+        $this->postJson('/api/racks', [])->assertJsonValidationErrors(['code', 'warehouse_id']);
+        $this->postJson('/api/racks', [
+            'code' => 'A-01',
+            'warehouse_id' => 9999,
+        ])
+            ->assertJsonValidationErrors(['warehouse_id']);
     }
 
     public function test_update_allows_own_code_and_rejects_code_of_another_rack_in_same_warehouse(): void
@@ -148,6 +159,7 @@ class RackTest extends TestCase
             'warehouse_id' => $warehouse->id,
         ])
             ->assertOk()
+            ->assertJsonPath('message', 'Rak berhasil diperbarui.')
             ->assertJsonPath('data.name', 'Baru')
             ->assertJsonPath('data.updated_by_id', $user->id);
 
@@ -157,15 +169,5 @@ class RackTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['code']);
-    }
-
-    public function test_destroy_deletes_rack(): void
-    {
-        $this->signIn();
-        $rack = Rack::factory()->create();
-
-        $this->deleteJson("/api/racks/{$rack->id}")->assertNoContent();
-
-        $this->assertDatabaseMissing('racks', ['id' => $rack->id]);
     }
 }

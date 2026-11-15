@@ -3,10 +3,13 @@
 namespace App\Http\Requests\Category;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Category;
 use Illuminate\Validation\Rule;
 
 class IndexCategoryRequest extends IndexRequest
 {
+    protected string $model = Category::class;
+
     protected function defaults(): array
     {
         return [

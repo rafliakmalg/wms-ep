@@ -18,6 +18,13 @@ class UserFactory extends Factory
      */
     protected static ?string $password;
 
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::firstOrCreate(['name' => 'admin'], ['label' => 'Admin'])->id,
+        ]);
+    }
+
     /**
      * Define the model's default state.
      *
@@ -27,28 +34,11 @@ class UserFactory extends Factory
     {
         return [
             'role_id' => Role::factory(),
-            'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            'name' => fake()->name(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'username' => fake()->unique()->bothify('user_??##'),
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
-    }
-
-    public function admin(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'role_id' => Role::firstOrCreate(['name' => 'admin'], ['label' => 'Admin'])->id,
-        ]);
     }
 }

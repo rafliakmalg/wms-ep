@@ -3,10 +3,13 @@
 namespace App\Http\Requests\Role;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Role;
 use Illuminate\Validation\Rule;
 
 class IndexRoleRequest extends IndexRequest
 {
+    protected string $model = Role::class;
+
     protected function defaults(): array
     {
         return [

@@ -3,15 +3,16 @@
 namespace App\Http\Requests\User;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\User;
 use Illuminate\Validation\Rule;
 
 class IndexUserRequest extends IndexRequest
 {
+    protected string $model = User::class;
+
     protected function defaults(): array
     {
         return [
-            'active' => null,
-            'role_id' => null,
             'sort_by' => 'name',
         ];
     }
@@ -23,9 +24,7 @@ class IndexUserRequest extends IndexRequest
     {
         return [
             ...parent::rules(),
-            'active' => ['nullable', 'boolean'],
-            'role_id' => ['nullable', 'integer'],
-            'sort_by' => ['string', Rule::in(['created_at', 'email', 'name'])],
+            'sort_by' => ['string', Rule::in(['created_at', 'email', 'name', 'username'])],
         ];
     }
 }

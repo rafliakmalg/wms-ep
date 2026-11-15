@@ -17,14 +17,6 @@ class ProductTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function signIn(): User
-    {
-        $user = User::factory()->create();
-        Sanctum::actingAs($user);
-
-        return $user;
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -40,9 +32,65 @@ class ProductTest extends TestCase
         ];
     }
 
+    private function signIn(): User
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        return $user;
+    }
+
+    public function test_destroy_deletes_product_and_its_units(): void
+    {
+        $this->signIn();
+        $productUnit = ProductUnit::factory()->create();
+
+        $this->deleteJson("/api/products/{$productUnit->product_id}")->assertOk()->assertJsonPath('message', 'Barang berhasil dihapus.');
+
+        $this->assertDatabaseMissing('products', ['id' => $productUnit->product_id]);
+        $this->assertDatabaseMissing('product_units', ['id' => $productUnit->id]);
+    }
+
     public function test_guest_cannot_access_products(): void
     {
         $this->getJson('/api/products')->assertUnauthorized();
+    }
+
+    public function test_index_filters_by_search_category_and_active(): void
+    {
+        $this->signIn();
+        $category = Category::factory()->create();
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Kabel USB',
+            'sku' => 'KBL-1',
+        ]);
+        Product::factory()->create([
+            'category_id' => $category->id,
+            'name' => 'Mouse',
+            'sku' => 'MSE-1',
+            'active' => false,
+        ]);
+        Product::factory()->create([
+            'name' => 'Kabel HDMI',
+            'sku' => 'KBL-2',
+        ]);
+
+        $this->getJson('/api/products?search=kabel')->assertJsonCount(2, 'data');
+        $this->getJson('/api/products?search=MSE')->assertJsonCount(1, 'data');
+        $this->getJson("/api/products?filters[0][field]=category_id&filters[0][operator]=eq&filters[0][value]={$category->id}")->assertJsonCount(2, 'data');
+        $this->getJson("/api/products?filters[0][field]=category_id&filters[0][operator]=eq&filters[0][value]={$category->id}&filters[1][field]=active&filters[1][operator]=eq&filters[1][value]=0")
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.sku', 'MSE-1');
+    }
+
+    public function test_index_rejects_invalid_query(): void
+    {
+        $this->signIn();
+
+        $this->getJson('/api/products?per_page=1000&sort_by=min_stock')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['per_page', 'sort_by']);
     }
 
     public function test_index_returns_products_with_relations(): void
@@ -69,41 +117,16 @@ class ProductTest extends TestCase
             ]], 'links', 'meta']);
     }
 
-    public function test_index_filters_by_search_category_and_active(): void
+    public function test_show_returns_product_with_relations(): void
     {
         $this->signIn();
-        $category = Category::factory()->create();
-        Product::factory()->create([
-            'category_id' => $category->id,
-            'name' => 'Kabel USB',
-            'sku' => 'KBL-1',
-        ]);
-        Product::factory()->create([
-            'category_id' => $category->id,
-            'name' => 'Mouse',
-            'sku' => 'MSE-1',
-            'active' => false,
-        ]);
-        Product::factory()->create([
-            'name' => 'Kabel HDMI',
-            'sku' => 'KBL-2',
-        ]);
+        $productUnit = ProductUnit::factory()->create();
 
-        $this->getJson('/api/products?search=kabel')->assertJsonCount(2, 'data');
-        $this->getJson('/api/products?search=MSE')->assertJsonCount(1, 'data');
-        $this->getJson("/api/products?category_id={$category->id}")->assertJsonCount(2, 'data');
-        $this->getJson("/api/products?category_id={$category->id}&active=0")
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.sku', 'MSE-1');
-    }
-
-    public function test_index_rejects_invalid_query(): void
-    {
-        $this->signIn();
-
-        $this->getJson('/api/products?per_page=1000&sort_by=min_stock')
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['per_page', 'sort_by']);
+        $this->getJson("/api/products/{$productUnit->product_id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $productUnit->product_id)
+            ->assertJsonCount(1, 'data.units')
+            ->assertJsonPath('data.units.0.unit.id', $productUnit->unit_id);
     }
 
     public function test_store_creates_product_with_defaults_audit_and_string_decimals(): void
@@ -113,6 +136,7 @@ class ProductTest extends TestCase
 
         $this->postJson('/api/products', $payload)
             ->assertCreated()
+            ->assertJsonPath('message', 'Barang berhasil ditambahkan.')
             ->assertJsonPath('data.sku', 'SKU-0001')
             ->assertJsonPath('data.active', true)
             ->assertJsonPath('data.min_stock', '0.000')
@@ -120,6 +144,46 @@ class ProductTest extends TestCase
             ->assertJsonPath('data.base_unit.id', $payload['base_unit_id'])
             ->assertJsonPath('data.category.id', $payload['category_id'])
             ->assertJsonCount(0, 'data.units');
+    }
+
+    public function test_store_rejects_base_unit_and_duplicate_units_in_unit_list(): void
+    {
+        $this->signIn();
+        $base = Unit::factory()->create();
+        $box = Unit::factory()->create();
+
+        $this->postJson('/api/products', $this->payload([
+            'base_unit_id' => $base->id,
+            'units' => [[
+                'unit_id' => $base->id,
+                'factor' => 1,
+            ]],
+        ]))
+            ->assertJsonValidationErrors(['units.0.unit_id']);
+        $this->postJson('/api/products', $this->payload(['units' => [[
+            'unit_id' => $box->id,
+            'factor' => 2,
+        ], [
+            'unit_id' => $box->id,
+            'factor' => 3,
+        ]]]))
+            ->assertJsonValidationErrors(['units.0.unit_id', 'units.1.unit_id']);
+    }
+
+    public function test_store_rolls_back_the_product_when_creating_units_fails(): void
+    {
+        $this->signIn();
+        $unit = Unit::factory()->create();
+        ProductUnit::creating(fn () => throw new RuntimeException('gagal'));
+
+        $this->postJson('/api/products', $this->payload(['units' => [[
+            'unit_id' => $unit->id,
+            'factor' => 2,
+        ]]]))
+            ->assertServerError();
+
+        $this->assertDatabaseCount('products', 0);
+        $this->assertDatabaseCount('product_units', 0);
     }
 
     public function test_store_saves_product_units_with_string_factor_and_audit(): void
@@ -152,20 +216,6 @@ class ProductTest extends TestCase
         ]);
     }
 
-    public function test_store_validates_required_fields_and_foreign_keys(): void
-    {
-        $this->signIn();
-        Product::factory()->create(['sku' => 'SKU-0001']);
-
-        $this->postJson('/api/products', [])->assertJsonValidationErrors(['base_unit_id', 'category_id', 'name', 'sku', 'units']);
-        $this->postJson('/api/products', $this->payload([
-            'base_unit_id' => 9999,
-            'category_id' => 9999,
-            'sku' => 'SKU-0001',
-        ]))
-            ->assertJsonValidationErrors(['base_unit_id', 'category_id', 'sku']);
-    }
-
     public function test_store_validates_numbers(): void
     {
         $this->signIn();
@@ -185,28 +235,18 @@ class ProductTest extends TestCase
             ->assertJsonValidationErrors(['units.0.factor']);
     }
 
-    public function test_store_rejects_base_unit_and_duplicate_units_in_unit_list(): void
+    public function test_store_validates_required_fields_and_foreign_keys(): void
     {
         $this->signIn();
-        $base = Unit::factory()->create();
-        $box = Unit::factory()->create();
+        Product::factory()->create(['sku' => 'SKU-0001']);
 
+        $this->postJson('/api/products', [])->assertJsonValidationErrors(['base_unit_id', 'category_id', 'name', 'sku', 'units']);
         $this->postJson('/api/products', $this->payload([
-            'base_unit_id' => $base->id,
-            'units' => [[
-                'unit_id' => $base->id,
-                'factor' => 1,
-            ]],
+            'base_unit_id' => 9999,
+            'category_id' => 9999,
+            'sku' => 'SKU-0001',
         ]))
-            ->assertJsonValidationErrors(['units.0.unit_id']);
-        $this->postJson('/api/products', $this->payload(['units' => [[
-            'unit_id' => $box->id,
-            'factor' => 2,
-        ], [
-            'unit_id' => $box->id,
-            'factor' => 3,
-        ]]]))
-            ->assertJsonValidationErrors(['units.0.unit_id', 'units.1.unit_id']);
+            ->assertJsonValidationErrors(['base_unit_id', 'category_id', 'sku']);
     }
 
     public function test_store_with_invalid_unit_creates_no_product(): void
@@ -219,61 +259,6 @@ class ProductTest extends TestCase
         ]]]))->assertUnprocessable();
 
         $this->assertDatabaseCount('products', 0);
-    }
-
-    public function test_store_rolls_back_the_product_when_creating_units_fails(): void
-    {
-        $this->signIn();
-        $unit = Unit::factory()->create();
-        ProductUnit::creating(fn () => throw new RuntimeException('gagal'));
-
-        $this->postJson('/api/products', $this->payload(['units' => [[
-            'unit_id' => $unit->id,
-            'factor' => 2,
-        ]]]))
-            ->assertServerError();
-
-        $this->assertDatabaseCount('products', 0);
-        $this->assertDatabaseCount('product_units', 0);
-    }
-
-    public function test_update_rolls_back_everything_when_creating_units_fails(): void
-    {
-        $this->signIn();
-        $product = Product::factory()->create(['name' => 'Nama Lama']);
-        $oldUnit = ProductUnit::factory()->create(['product_id' => $product->id]);
-        $newUnit = Unit::factory()->create();
-        ProductUnit::creating(fn () => throw new RuntimeException('gagal'));
-
-        $this->putJson("/api/products/{$product->id}", $this->payload([
-            'base_unit_id' => $product->base_unit_id,
-            'category_id' => $product->category_id,
-            'name' => 'Nama Baru',
-            'sku' => $product->sku,
-            'units' => [[
-                'unit_id' => $newUnit->id,
-                'factor' => 2,
-            ]],
-        ]))->assertServerError();
-
-        $this->assertDatabaseHas('products', [
-            'id' => $product->id,
-            'name' => 'Nama Lama',
-        ]);
-        $this->assertDatabaseHas('product_units', ['id' => $oldUnit->id]);
-        $this->assertDatabaseCount('product_units', 1);
-    }
-
-    public function test_show_returns_product_with_relations(): void
-    {
-        $this->signIn();
-        $productUnit = ProductUnit::factory()->create();
-
-        $this->getJson("/api/products/{$productUnit->product_id}")
-            ->assertOk()
-            ->assertJsonPath('data.id', $productUnit->product_id)
-            ->assertJsonCount(1, 'data.units')
-            ->assertJsonPath('data.units.0.unit.id', $productUnit->unit_id);
     }
 
     public function test_update_changes_fields_and_allows_own_sku(): void
@@ -290,6 +275,7 @@ class ProductTest extends TestCase
             'units' => [],
         ])
             ->assertOk()
+            ->assertJsonPath('message', 'Barang berhasil diperbarui.')
             ->assertJsonPath('data.name', 'Nama Baru')
             ->assertJsonPath('data.min_stock', '5.000')
             ->assertJsonPath('data.updated_by_id', $user->id);
@@ -368,14 +354,30 @@ class ProductTest extends TestCase
         $this->assertDatabaseCount('product_units', 0);
     }
 
-    public function test_destroy_deletes_product_and_its_units(): void
+    public function test_update_rolls_back_everything_when_creating_units_fails(): void
     {
         $this->signIn();
-        $productUnit = ProductUnit::factory()->create();
+        $product = Product::factory()->create(['name' => 'Nama Lama']);
+        $oldUnit = ProductUnit::factory()->create(['product_id' => $product->id]);
+        $newUnit = Unit::factory()->create();
+        ProductUnit::creating(fn () => throw new RuntimeException('gagal'));
 
-        $this->deleteJson("/api/products/{$productUnit->product_id}")->assertNoContent();
+        $this->putJson("/api/products/{$product->id}", $this->payload([
+            'base_unit_id' => $product->base_unit_id,
+            'category_id' => $product->category_id,
+            'name' => 'Nama Baru',
+            'sku' => $product->sku,
+            'units' => [[
+                'unit_id' => $newUnit->id,
+                'factor' => 2,
+            ]],
+        ]))->assertServerError();
 
-        $this->assertDatabaseMissing('products', ['id' => $productUnit->product_id]);
-        $this->assertDatabaseMissing('product_units', ['id' => $productUnit->id]);
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+            'name' => 'Nama Lama',
+        ]);
+        $this->assertDatabaseHas('product_units', ['id' => $oldUnit->id]);
+        $this->assertDatabaseCount('product_units', 1);
     }
 }

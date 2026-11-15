@@ -3,14 +3,16 @@
 namespace App\Http\Requests\Branch;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Branch;
 use Illuminate\Validation\Rule;
 
 class IndexBranchRequest extends IndexRequest
 {
+    protected string $model = Branch::class;
+
     protected function defaults(): array
     {
         return [
-            'active' => null,
             'sort_by' => 'name',
         ];
     }
@@ -22,7 +24,6 @@ class IndexBranchRequest extends IndexRequest
     {
         return [
             ...parent::rules(),
-            'active' => ['nullable', 'boolean'],
             'sort_by' => ['string', Rule::in(['code', 'created_at', 'name'])],
         ];
     }

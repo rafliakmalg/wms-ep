@@ -19,13 +19,13 @@ class AuthController extends Controller
     {
         $param = $request->validated();
 
-        $user = User::where('email', $param['email'])->first();
+        $user = User::where('username', $param['username'])->first();
 
         // utk mencegah timing attack, kita tetap melakukan pengecekan password meskipun user tidak ditemukan
         $passwordMatches = Hash::check($param['password'], $user->password ?? self::DUMMY_HASH);
 
         if (! $user || ! $user->active || ! $passwordMatches) {
-            throw ValidationException::withMessages(['email' => 'Email atau password salah.']);
+            throw ValidationException::withMessages(['username' => 'Username atau password salah.']);
         }
 
         $token = $user->createToken('api')->plainTextToken;

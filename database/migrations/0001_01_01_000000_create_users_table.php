@@ -17,11 +17,11 @@ return new class extends Migration
             $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->foreignId('role_id')->constrained()->restrictOnDelete();
             $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+            $table->string('email')->nullable()->unique();
             $table->string('name');
             $table->string('password');
             $table->rememberToken();
+            $table->string('username')->unique();
             $table->boolean('active')->default(true);
         });
 

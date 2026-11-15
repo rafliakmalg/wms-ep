@@ -3,10 +3,13 @@
 namespace App\Http\Requests\Unit;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Unit;
 use Illuminate\Validation\Rule;
 
 class IndexUnitRequest extends IndexRequest
 {
+    protected string $model = Unit::class;
+
     protected function defaults(): array
     {
         return [

@@ -3,16 +3,17 @@
 namespace App\Http\Requests\Rack;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Rack;
 use Illuminate\Validation\Rule;
 
 class IndexRackRequest extends IndexRequest
 {
+    protected string $model = Rack::class;
+
     protected function defaults(): array
     {
         return [
-            'active' => null,
             'sort_by' => 'code',
-            'warehouse_id' => null,
         ];
     }
 
@@ -23,9 +24,7 @@ class IndexRackRequest extends IndexRequest
     {
         return [
             ...parent::rules(),
-            'active' => ['nullable', 'boolean'],
             'sort_by' => ['string', Rule::in(['code', 'created_at', 'name'])],
-            'warehouse_id' => ['nullable', 'integer'],
         ];
     }
 }

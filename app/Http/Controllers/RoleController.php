@@ -6,8 +6,9 @@ use App\Http\Requests\Role\IndexRoleRequest;
 use App\Http\Requests\Role\RoleRequest;
 use App\Http\Resources\RoleResource;
 use App\Models\Role;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class RoleController extends Controller
 {
@@ -23,6 +24,8 @@ class RoleController extends Controller
                     ->orWhere('name', 'like', '%'.$param['search'].'%');
             });
         }
+
+        Filter::apply($query, $param['filters']);
 
         $roles = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -42,7 +45,9 @@ class RoleController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return RoleResource::make($role);
+        $message = __('index.created', ['resource' => __('index.tables.roles.name')]);
+
+        return RoleResource::make($role)->additional(['message' => $message]);
     }
 
     public function show(Role $role): RoleResource
@@ -59,13 +64,15 @@ class RoleController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return RoleResource::make($role);
+        $message = __('index.updated', ['resource' => __('index.tables.roles.name')]);
+
+        return RoleResource::make($role)->additional(['message' => $message]);
     }
 
-    public function destroy(Role $role): Response
+    public function destroy(Role $role): JsonResponse
     {
         $role->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.roles.name')])]);
     }
 }

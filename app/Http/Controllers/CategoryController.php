@@ -6,8 +6,9 @@ use App\Http\Requests\Category\CategoryRequest;
 use App\Http\Requests\Category\IndexCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class CategoryController extends Controller
 {
@@ -20,6 +21,8 @@ class CategoryController extends Controller
         if ($param['search']) {
             $query->where('name', 'like', '%'.$param['search'].'%');
         }
+
+        Filter::apply($query, $param['filters']);
 
         $categories = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -39,7 +42,9 @@ class CategoryController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return CategoryResource::make($category);
+        $message = __('index.created', ['resource' => __('index.tables.categories.name')]);
+
+        return CategoryResource::make($category)->additional(['message' => $message]);
     }
 
     public function show(Category $category): CategoryResource
@@ -56,13 +61,15 @@ class CategoryController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return CategoryResource::make($category);
+        $message = __('index.updated', ['resource' => __('index.tables.categories.name')]);
+
+        return CategoryResource::make($category)->additional(['message' => $message]);
     }
 
-    public function destroy(Category $category): Response
+    public function destroy(Category $category): JsonResponse
     {
         $category->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.categories.name')])]);
     }
 }

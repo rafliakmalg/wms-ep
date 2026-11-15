@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Filterable;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['active', 'base_unit_id', 'category_id', 'created_by_id', 'description', 'min_stock', 'name', 'sku', 'updated_by_id'])]
-class Product extends Model
+class Product extends Model implements Filterable
 {
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
@@ -28,6 +29,22 @@ class Product extends Model
         return [
             'active' => 'boolean',
             'min_stock' => 'decimal:3',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function filterable(): array
+    {
+        return [
+            'sku' => 'string',
+            'name' => 'string',
+            'category_id' => 'integer',
+            'base_unit_id' => 'integer',
+            'min_stock' => 'decimal',
+            'active' => 'boolean',
+            'created_at' => 'date',
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Filterable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -11,9 +12,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['active', 'created_by_id', 'email', 'name', 'password', 'role_id', 'updated_by_id'])]
+#[Fillable(['active', 'created_by_id', 'email', 'name', 'password', 'role_id', 'updated_by_id', 'username'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements Filterable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -31,8 +32,22 @@ class User extends Authenticatable
     {
         return [
             'active' => 'boolean',
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function filterable(): array
+    {
+        return [
+            'name' => 'string',
+            'username' => 'string',
+            'email' => 'string',
+            'role_id' => 'integer',
+            'active' => 'boolean',
+            'created_at' => 'date',
         ];
     }
 

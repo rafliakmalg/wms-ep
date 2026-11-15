@@ -6,8 +6,9 @@ use App\Http\Requests\Unit\IndexUnitRequest;
 use App\Http\Requests\Unit\UnitRequest;
 use App\Http\Resources\UnitResource;
 use App\Models\Unit;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class UnitController extends Controller
 {
@@ -23,6 +24,8 @@ class UnitController extends Controller
                     ->orWhere('name', 'like', '%'.$param['search'].'%');
             });
         }
+
+        Filter::apply($query, $param['filters']);
 
         $units = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -42,7 +45,9 @@ class UnitController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return UnitResource::make($unit);
+        $message = __('index.created', ['resource' => __('index.tables.units.name')]);
+
+        return UnitResource::make($unit)->additional(['message' => $message]);
     }
 
     public function show(Unit $unit): UnitResource
@@ -59,13 +64,15 @@ class UnitController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        return UnitResource::make($unit);
+        $message = __('index.updated', ['resource' => __('index.tables.units.name')]);
+
+        return UnitResource::make($unit)->additional(['message' => $message]);
     }
 
-    public function destroy(Unit $unit): Response
+    public function destroy(Unit $unit): JsonResponse
     {
         $unit->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.units.name')])]);
     }
 }

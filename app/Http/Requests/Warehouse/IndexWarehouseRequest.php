@@ -3,15 +3,16 @@
 namespace App\Http\Requests\Warehouse;
 
 use App\Http\Requests\IndexRequest;
+use App\Models\Warehouse;
 use Illuminate\Validation\Rule;
 
 class IndexWarehouseRequest extends IndexRequest
 {
+    protected string $model = Warehouse::class;
+
     protected function defaults(): array
     {
         return [
-            'active' => null,
-            'branch_id' => null,
             'sort_by' => 'name',
         ];
     }
@@ -23,8 +24,6 @@ class IndexWarehouseRequest extends IndexRequest
     {
         return [
             ...parent::rules(),
-            'active' => ['nullable', 'boolean'],
-            'branch_id' => ['nullable', 'integer'],
             'sort_by' => ['string', Rule::in(['code', 'created_at', 'name'])],
         ];
     }

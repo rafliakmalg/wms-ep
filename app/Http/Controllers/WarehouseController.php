@@ -6,8 +6,9 @@ use App\Http\Requests\Warehouse\IndexWarehouseRequest;
 use App\Http\Requests\Warehouse\WarehouseRequest;
 use App\Http\Resources\WarehouseResource;
 use App\Models\Warehouse;
+use App\Support\Filter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
 
 class WarehouseController extends Controller
 {
@@ -24,13 +25,7 @@ class WarehouseController extends Controller
             });
         }
 
-        if ($param['branch_id']) {
-            $query->where('branch_id', $param['branch_id']);
-        }
-
-        if ($param['active'] !== null) {
-            $query->where('active', $param['active']);
-        }
+        Filter::apply($query, $param['filters']);
 
         $warehouses = $query
             ->orderBy($param['sort_by'], $param['sort_dir'])
@@ -52,7 +47,9 @@ class WarehouseController extends Controller
 
         $warehouse->load('branch');
 
-        return WarehouseResource::make($warehouse);
+        $message = __('index.created', ['resource' => __('index.tables.warehouses.name')]);
+
+        return WarehouseResource::make($warehouse)->additional(['message' => $message]);
     }
 
     public function show(Warehouse $warehouse): WarehouseResource
@@ -73,13 +70,15 @@ class WarehouseController extends Controller
 
         $warehouse->load('branch');
 
-        return WarehouseResource::make($warehouse);
+        $message = __('index.updated', ['resource' => __('index.tables.warehouses.name')]);
+
+        return WarehouseResource::make($warehouse)->additional(['message' => $message]);
     }
 
-    public function destroy(Warehouse $warehouse): Response
+    public function destroy(Warehouse $warehouse): JsonResponse
     {
         $warehouse->delete();
 
-        return response()->noContent();
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.warehouses.name')])]);
     }
 }

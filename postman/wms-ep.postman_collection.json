@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "wms-ep",
-    "description": "Collection untuk wms-ep (Laravel API).\n\n1. Jalankan `php artisan migrate:fresh --seed` lalu `php artisan serve`.\n2. Atur variabel `base_url` bila server tidak di http://127.0.0.1:8000.\n3. Jalankan Auth > Login lebih dulu. Token tersimpan otomatis di variabel `token`.\n4. Jalankan folder dari atas ke bawah (atau Run collection). ID hasil Create tersimpan otomatis.\n5. Folder Cleanup menghapus data dari anak ke induk. Menghapus induk yang masih dipakai mengembalikan 409.\nAkun seeder: admin@example.com / password (satu-satunya akun admin yang bisa membuka Roles dan Users).",
+    "description": "Collection untuk wms-ep (Laravel API).\n\n1. Jalankan `php artisan migrate:fresh --seed`. Server lewat Herd (`herd link wms-ep`) atau `php artisan serve`.\n2. Atur variabel `base_url` bila server tidak di http://wms-ep.test (misalnya `php artisan serve`: http://127.0.0.1:8000/api).\n3. Jalankan Auth > Login lebih dulu. Token tersimpan otomatis di variabel `token`.\n4. Jalankan folder dari atas ke bawah (atau Run collection). ID hasil Create tersimpan otomatis.\n5. Folder Cleanup menghapus data dari anak ke induk. Menghapus induk yang masih dipakai mengembalikan 409.\nAkun seeder (password semuanya `admin123`): testing_admin, testing_supervisor, testing_operator. Hanya admin yang bisa membuka Roles dan Users.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -28,7 +28,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://127.0.0.1:8000/api"
+      "value": "http://wms-ep.test/api"
     },
     {
       "key": "token",
@@ -47,7 +47,7 @@
       "value": ""
     },
     {
-      "key": "user_email",
+      "key": "user_username",
       "value": ""
     },
     {
@@ -141,7 +141,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}",
+              "raw": "{\n  \"username\": \"testing_admin\",\n  \"password\": \"admin123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -384,7 +384,7 @@
                   "",
                   "const json = pm.response.json();",
                   "pm.collectionVariables.set(\"user_id\", json.data.id);",
-                  "pm.collectionVariables.set(\"user_email\", json.data.email);"
+                  "pm.collectionVariables.set(\"user_username\", json.data.username);"
                 ]
               }
             }
@@ -408,7 +408,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"User {{$randomInt}}\",\n  \"email\": \"user{{$randomInt}}@example.com\",\n  \"password\": \"password123\",\n  \"role_id\": {{role_id}},\n  \"active\": true\n}",
+              "raw": "{\n  \"name\": \"User {{$randomInt}}\",\n  \"username\": \"user_{{$randomInt}}\",\n  \"email\": \"user{{$randomInt}}@example.com\",\n  \"password\": \"password123\",\n  \"role_id\": {{role_id}},\n  \"active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -450,12 +450,77 @@
                   "disabled": true
                 },
                 {
-                  "key": "role_id",
-                  "value": "{{role_id}}",
+                  "key": "filters[0][field]",
+                  "value": "name",
                   "disabled": true
                 },
                 {
-                  "key": "active",
+                  "key": "filters[0][operator]",
+                  "value": "like",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "user",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[1][field]",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[1][operator]",
+                  "value": "gte",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[1][value]",
+                  "value": "2026-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[2][field]",
+                  "value": "email",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[2][operator]",
+                  "value": "null",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[2][value]",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[3][field]",
+                  "value": "role_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[3][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[3][value]",
+                  "value": "{{role_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[4][field]",
+                  "value": "active",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[4][operator]",
+                  "value": "eq",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[4][value]",
                   "value": "1",
                   "disabled": true
                 },
@@ -543,7 +608,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"User Diubah\",\n  \"email\": \"{{user_email}}\",\n  \"role_id\": {{role_id}},\n  \"active\": true\n}",
+              "raw": "{\n  \"name\": \"User Diubah\",\n  \"username\": \"{{user_username}}\",\n  \"role_id\": {{role_id}},\n  \"active\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -637,7 +702,17 @@
                   "disabled": true
                 },
                 {
-                  "key": "active",
+                  "key": "filters[0][field]",
+                  "value": "active",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][value]",
                   "value": "1",
                   "disabled": true
                 },
@@ -819,12 +894,32 @@
                   "disabled": true
                 },
                 {
-                  "key": "branch_id",
+                  "key": "filters[0][field]",
+                  "value": "branch_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
                   "value": "{{branch_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[1][field]",
+                  "value": "active",
                   "disabled": true
                 },
                 {
-                  "key": "active",
+                  "key": "filters[1][operator]",
+                  "value": "eq",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[1][value]",
                   "value": "1",
                   "disabled": true
                 },
@@ -1006,12 +1101,32 @@
                   "disabled": true
                 },
                 {
-                  "key": "warehouse_id",
+                  "key": "filters[0][field]",
+                  "value": "warehouse_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
                   "value": "{{warehouse_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[1][field]",
+                  "value": "active",
                   "disabled": true
                 },
                 {
-                  "key": "active",
+                  "key": "filters[1][operator]",
+                  "value": "eq",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[1][value]",
                   "value": "1",
                   "disabled": true
                 },
@@ -1550,7 +1665,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"SKU-{{$randomInt}}\",\n  \"name\": \"Produk {{$randomInt}}\",\n  \"category_id\": {{category_id}},\n  \"base_unit_id\": {{unit_id}},\n  \"min_stock\": 10.5,\n  \"description\": \"Produk contoh\",\n  \"active\": true,\n  \"units\": [\n    {\n      \"unit_id\": {{unit2_id}},\n      \"factor\": 12\n    }\n  ]\n}",
+              "raw": "{\n  \"sku\": \"SKU-{{$randomInt}}\",\n  \"name\": \"Barang {{$randomInt}}\",\n  \"category_id\": {{category_id}},\n  \"base_unit_id\": {{unit_id}},\n  \"min_stock\": 10.5,\n  \"description\": \"Barang contoh\",\n  \"active\": true,\n  \"units\": [\n    {\n      \"unit_id\": {{unit2_id}},\n      \"factor\": 12\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1592,12 +1707,32 @@
                   "disabled": true
                 },
                 {
-                  "key": "category_id",
+                  "key": "filters[0][field]",
+                  "value": "category_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
                   "value": "{{category_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[1][field]",
+                  "value": "active",
                   "disabled": true
                 },
                 {
-                  "key": "active",
+                  "key": "filters[1][operator]",
+                  "value": "eq",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[1][value]",
                   "value": "1",
                   "disabled": true
                 },
@@ -1685,7 +1820,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sku\": \"{{product_sku}}\",\n  \"name\": \"Produk Diubah\",\n  \"category_id\": {{category_id}},\n  \"base_unit_id\": {{unit_id}},\n  \"min_stock\": 20,\n  \"units\": []\n}",
+              "raw": "{\n  \"sku\": \"{{product_sku}}\",\n  \"name\": \"Barang Diubah\",\n  \"category_id\": {{category_id}},\n  \"base_unit_id\": {{unit_id}},\n  \"min_stock\": 20,\n  \"units\": []\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1707,8 +1842,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1737,8 +1872,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1767,8 +1902,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1797,8 +1932,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1827,8 +1962,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1857,8 +1992,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1887,8 +2022,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1917,8 +2052,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }
@@ -1947,8 +2082,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 204\", function () {",
-                  "    pm.response.to.have.status(204);",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
                   "});"
                 ]
               }

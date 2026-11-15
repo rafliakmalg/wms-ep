@@ -19,10 +19,10 @@ class UserResource extends JsonResource
             'created_by_id' => $this->created_by_id,
             'role_id' => $this->role_id,
             'updated_by_id' => $this->updated_by_id,
-            'active' => $this->active,
             'email' => $this->email,
-            'email_verified_at' => $this->email_verified_at,
             'name' => $this->name,
+            'username' => $this->username,
+            'active' => $this->active,
             'role' => RoleResource::make($this->whenLoaded('role')),
         ];
     }

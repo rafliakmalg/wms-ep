@@ -21,10 +21,17 @@ class UserRequest extends FormRequest
 
         return [
             'active' => ['boolean'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'name' => ['required', 'string', 'max:255'],
             'password' => [$user ? 'sometimes' : 'required', 'string', 'min:8'],
             'role_id' => ['required', 'integer', 'exists:roles,id'],
+            'username' => [
+                'required',
+                'string',
+                'max:50',
+                'alpha_dash:ascii',
+                Rule::unique('users', 'username')->ignore($user),
+            ],
         ];
     }
 }

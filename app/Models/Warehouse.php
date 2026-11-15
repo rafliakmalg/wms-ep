@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Filterable;
 use Database\Factories\WarehouseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['active', 'address', 'branch_id', 'code', 'created_by_id', 'name', 'updated_by_id'])]
-class Warehouse extends Model
+class Warehouse extends Model implements Filterable
 {
     /** @use HasFactory<WarehouseFactory> */
     use HasFactory;
@@ -26,6 +27,20 @@ class Warehouse extends Model
     {
         return [
             'active' => 'boolean',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function filterable(): array
+    {
+        return [
+            'code' => 'string',
+            'name' => 'string',
+            'branch_id' => 'integer',
+            'active' => 'boolean',
+            'created_at' => 'date',
         ];
     }
 
