@@ -7,6 +7,16 @@ use Illuminate\Validation\Rule;
 
 class CategoryRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => __('index.category.name'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

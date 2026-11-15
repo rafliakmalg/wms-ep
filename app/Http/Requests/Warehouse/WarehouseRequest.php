@@ -7,6 +7,20 @@ use Illuminate\Validation\Rule;
 
 class WarehouseRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'active' => __('index.warehouse.active'),
+            'address' => __('index.warehouse.address'),
+            'branch_id' => __('index.warehouse.branch_id'),
+            'code' => __('index.warehouse.code'),
+            'name' => __('index.warehouse.name'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

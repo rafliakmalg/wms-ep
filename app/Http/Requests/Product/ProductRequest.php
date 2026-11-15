@@ -7,6 +7,25 @@ use Illuminate\Validation\Rule;
 
 class ProductRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'active' => __('index.product.active'),
+            'base_unit_id' => __('index.product.base_unit_id'),
+            'category_id' => __('index.product.category_id'),
+            'description' => __('index.product.description'),
+            'min_stock' => __('index.product.min_stock'),
+            'name' => __('index.product.name'),
+            'sku' => __('index.product.sku'),
+            'units' => __('index.product.units'),
+            'units.*.factor' => __('index.product.units.factor'),
+            'units.*.unit_id' => __('index.product.units.unit_id'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

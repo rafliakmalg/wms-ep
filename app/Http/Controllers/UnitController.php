@@ -45,7 +45,7 @@ class UnitController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.created', ['resource' => __('index.tables.units.name')]);
+        $message = __('index.created', ['resource' => __('index.unit')]);
 
         return UnitResource::make($unit)->additional(['message' => $message]);
     }
@@ -64,7 +64,7 @@ class UnitController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.updated', ['resource' => __('index.tables.units.name')]);
+        $message = __('index.updated', ['resource' => __('index.unit')]);
 
         return UnitResource::make($unit)->additional(['message' => $message]);
     }
@@ -73,6 +73,6 @@ class UnitController extends Controller
     {
         $unit->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.units.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.unit')])]);
     }
 }

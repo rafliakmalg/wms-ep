@@ -45,7 +45,7 @@ class BranchController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.created', ['resource' => __('index.tables.branches.name')]);
+        $message = __('index.created', ['resource' => __('index.branch')]);
 
         return BranchResource::make($branch)->additional(['message' => $message]);
     }
@@ -64,7 +64,7 @@ class BranchController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.updated', ['resource' => __('index.tables.branches.name')]);
+        $message = __('index.updated', ['resource' => __('index.branch')]);
 
         return BranchResource::make($branch)->additional(['message' => $message]);
     }
@@ -73,6 +73,6 @@ class BranchController extends Controller
     {
         $branch->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.branches.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.branch')])]);
     }
 }

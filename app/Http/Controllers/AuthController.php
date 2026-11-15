@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\Lang;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,7 +26,7 @@ class AuthController extends Controller
         $passwordMatches = Hash::check($param['password'], $user->password ?? self::DUMMY_HASH);
 
         if (! $user || ! $user->active || ! $passwordMatches) {
-            throw ValidationException::withMessages(['username' => 'Username atau password salah.']);
+            throw ValidationException::withMessages(['username' => __('index.login.failed')]);
         }
 
         $token = $user->createToken('api')->plainTextToken;
@@ -33,6 +34,7 @@ class AuthController extends Controller
 
         return response()->json([
             'data' => [
+                'lang' => Lang::all(),
                 'token' => $token,
                 'user' => UserResource::make($user),
             ],
@@ -51,6 +53,6 @@ class AuthController extends Controller
         $user = $request->user();
         $user->load('role');
 
-        return UserResource::make($user);
+        return UserResource::make($user)->additional(['lang' => Lang::all()]);
     }
 }

@@ -7,6 +7,21 @@ use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'active' => __('index.user.active'),
+            'email' => __('index.user.email'),
+            'name' => __('index.user.name'),
+            'password' => __('index.user.password'),
+            'role_id' => __('index.user.role_id'),
+            'username' => __('index.user.username'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

@@ -20,13 +20,13 @@ class FilterCondition implements ValidationRule
         sort($keys);
 
         if ($keys !== ['field', 'operator', 'value']) {
-            $fail('The :attribute must contain a field, an operator and a value.');
+            $fail(__('validation.filter_shape'));
 
             return;
         }
 
         if (! is_string($value['field']) || ! isset($this->filters[$value['field']])) {
-            $fail('The :attribute field cannot be filtered.');
+            $fail(__('validation.filter_field'));
 
             return;
         }
@@ -34,13 +34,13 @@ class FilterCondition implements ValidationRule
         $type = $this->filters[$value['field']];
 
         if (! is_string($value['operator']) || ! in_array($value['operator'], Filter::operators($type), true)) {
-            $fail("The :attribute operator is not allowed for {$value['field']}.");
+            $fail(__('validation.filter_operator', ['field' => $value['field']]));
 
             return;
         }
 
         if (! $this->validValue($type, $value['operator'], $value['value'])) {
-            $fail('The :attribute value is invalid.');
+            $fail(__('validation.filter_value'));
         }
     }
 

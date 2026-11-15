@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -19,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (QueryException $e) {
             if (($e->errorInfo[1] ?? null) === 1451) {
-                return response()->json(['message' => 'Data masih digunakan oleh data lain.'], 409);
+                return response()->json(['message' => __('index.conflict')], 409);
             }
         });
 

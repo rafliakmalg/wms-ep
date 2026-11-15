@@ -7,6 +7,19 @@ use Illuminate\Validation\Rule;
 
 class RackRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'active' => __('index.rack.active'),
+            'code' => __('index.rack.code'),
+            'name' => __('index.rack.name'),
+            'warehouse_id' => __('index.rack.warehouse_id'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

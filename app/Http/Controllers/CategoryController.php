@@ -42,7 +42,7 @@ class CategoryController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.created', ['resource' => __('index.tables.categories.name')]);
+        $message = __('index.created', ['resource' => __('index.category')]);
 
         return CategoryResource::make($category)->additional(['message' => $message]);
     }
@@ -61,7 +61,7 @@ class CategoryController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.updated', ['resource' => __('index.tables.categories.name')]);
+        $message = __('index.updated', ['resource' => __('index.category')]);
 
         return CategoryResource::make($category)->additional(['message' => $message]);
     }
@@ -70,6 +70,6 @@ class CategoryController extends Controller
     {
         $category->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.categories.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.category')])]);
     }
 }

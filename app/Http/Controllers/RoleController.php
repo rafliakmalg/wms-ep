@@ -45,7 +45,7 @@ class RoleController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.created', ['resource' => __('index.tables.roles.name')]);
+        $message = __('index.created', ['resource' => __('index.role')]);
 
         return RoleResource::make($role)->additional(['message' => $message]);
     }
@@ -64,7 +64,7 @@ class RoleController extends Controller
             'updated_by_id' => $request->user()->id,
         ]);
 
-        $message = __('index.updated', ['resource' => __('index.tables.roles.name')]);
+        $message = __('index.updated', ['resource' => __('index.role')]);
 
         return RoleResource::make($role)->additional(['message' => $message]);
     }
@@ -73,6 +73,6 @@ class RoleController extends Controller
     {
         $role->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.roles.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.role')])]);
     }
 }

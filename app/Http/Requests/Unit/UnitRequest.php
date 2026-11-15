@@ -7,6 +7,17 @@ use Illuminate\Validation\Rule;
 
 class UnitRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'code' => __('index.unit.code'),
+            'name' => __('index.unit.name'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

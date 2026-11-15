@@ -47,7 +47,7 @@ class WarehouseController extends Controller
 
         $warehouse->load('branch');
 
-        $message = __('index.created', ['resource' => __('index.tables.warehouses.name')]);
+        $message = __('index.created', ['resource' => __('index.warehouse')]);
 
         return WarehouseResource::make($warehouse)->additional(['message' => $message]);
     }
@@ -70,7 +70,7 @@ class WarehouseController extends Controller
 
         $warehouse->load('branch');
 
-        $message = __('index.updated', ['resource' => __('index.tables.warehouses.name')]);
+        $message = __('index.updated', ['resource' => __('index.warehouse')]);
 
         return WarehouseResource::make($warehouse)->additional(['message' => $message]);
     }
@@ -79,6 +79,6 @@ class WarehouseController extends Controller
     {
         $warehouse->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.warehouses.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.warehouse')])]);
     }
 }

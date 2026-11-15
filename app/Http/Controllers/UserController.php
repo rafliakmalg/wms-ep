@@ -48,7 +48,7 @@ class UserController extends Controller
 
         $user->load('role');
 
-        $message = __('index.created', ['resource' => __('index.tables.users.name')]);
+        $message = __('index.created', ['resource' => __('index.user')]);
 
         return UserResource::make($user)->additional(['message' => $message]);
     }
@@ -71,7 +71,7 @@ class UserController extends Controller
 
         $user->load('role');
 
-        $message = __('index.updated', ['resource' => __('index.tables.users.name')]);
+        $message = __('index.updated', ['resource' => __('index.user')]);
 
         return UserResource::make($user)->additional(['message' => $message]);
     }
@@ -80,6 +80,6 @@ class UserController extends Controller
     {
         $user->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.users.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.user')])]);
     }
 }

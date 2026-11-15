@@ -7,6 +7,17 @@ use Illuminate\Validation\Rule;
 
 class RoleRequest extends FormRequest
 {
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'label' => __('index.role.label'),
+            'name' => __('index.role.name'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

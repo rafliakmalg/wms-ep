@@ -47,7 +47,7 @@ class RackController extends Controller
 
         $rack->load('warehouse');
 
-        $message = __('index.created', ['resource' => __('index.tables.racks.name')]);
+        $message = __('index.created', ['resource' => __('index.rack')]);
 
         return RackResource::make($rack)->additional(['message' => $message]);
     }
@@ -70,7 +70,7 @@ class RackController extends Controller
 
         $rack->load('warehouse');
 
-        $message = __('index.updated', ['resource' => __('index.tables.racks.name')]);
+        $message = __('index.updated', ['resource' => __('index.rack')]);
 
         return RackResource::make($rack)->additional(['message' => $message]);
     }
@@ -79,6 +79,6 @@ class RackController extends Controller
     {
         $rack->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.racks.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.rack')])]);
     }
 }

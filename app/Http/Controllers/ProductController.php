@@ -56,7 +56,7 @@ class ProductController extends Controller
 
             $product->load(['baseUnit', 'category', 'productUnits.unit']);
 
-            $return = ProductResource::make($product)->additional(['message' => __('index.created', ['resource' => __('index.tables.products.name')])]);
+            $return = ProductResource::make($product)->additional(['message' => __('index.created', ['resource' => __('index.product')])]);
         });
 
         return $return;
@@ -88,7 +88,7 @@ class ProductController extends Controller
 
             $product->load(['baseUnit', 'category', 'productUnits.unit']);
 
-            $return = ProductResource::make($product)->additional(['message' => __('index.updated', ['resource' => __('index.tables.products.name')])]);
+            $return = ProductResource::make($product)->additional(['message' => __('index.updated', ['resource' => __('index.product')])]);
         });
 
         return $return;
@@ -98,7 +98,7 @@ class ProductController extends Controller
     {
         $product->delete();
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.tables.products.name')])]);
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.product')])]);
     }
 
     /**

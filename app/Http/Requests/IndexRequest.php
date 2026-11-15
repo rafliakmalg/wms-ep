@@ -12,6 +12,22 @@ abstract class IndexRequest extends FormRequest
     /** @var class-string<Filterable> */
     protected string $model;
 
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'filters' => __('index.filters'),
+            'filters.*' => __('index.filters'),
+            'page' => __('index.page'),
+            'per_page' => __('index.per_page'),
+            'search' => __('index.search'),
+            'sort_by' => __('index.sort_by'),
+            'sort_dir' => __('index.sort_dir'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;
