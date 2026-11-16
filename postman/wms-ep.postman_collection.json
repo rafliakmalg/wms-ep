@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "wms-ep",
-    "description": "Collection untuk wms-ep (Laravel API).\n\n1. Jalankan `php artisan migrate:fresh --seed`. Server lewat Herd (`herd link wms-ep`) atau `php artisan serve`.\n2. Atur variabel `base_url` bila server tidak di http://wms-ep.test (misalnya `php artisan serve`: http://127.0.0.1:8000/api).\n3. Jalankan Auth > Login lebih dulu. Token tersimpan otomatis di variabel `token`.\n4. Jalankan folder dari atas ke bawah (atau Run collection). ID hasil Create tersimpan otomatis.\n5. Folder Cleanup menghapus data dari anak ke induk. Menghapus induk yang masih dipakai mengembalikan 409.\nAkun seeder (password semuanya `admin123`): testing_admin, testing_supervisor, testing_operator. Hanya admin yang bisa membuka Roles dan Users.",
+    "description": "Collection untuk wms-ep (Laravel API).\n\n1. Jalankan `php artisan migrate:fresh --seed`. Server lewat Herd (`herd link wms-ep`) atau `php artisan serve`.\n2. Atur variabel `base_url` bila server tidak di http://wms-ep.test (misalnya `php artisan serve`: http://127.0.0.1:8000/api).\n3. Jalankan Auth > Login lebih dulu. Token tersimpan otomatis di variabel `token`.\n4. Jalankan folder dari atas ke bawah (atau Run collection). ID hasil Create tersimpan otomatis.\n5. Folder Cleanup menghapus data dari anak ke induk. Menghapus induk yang masih dipakai mengembalikan 409.\nFolder Stok memakai stok awal dari seeder (`AdjustmentSeeder`, berupa dokumen penyesuaian), jadi `migrate:fresh --seed` wajib. Pergerakan, penyesuaian, dan pemindahan tidak bisa dihapus (riwayat).\nAkun seeder (password semuanya `admin123`): testing_admin, testing_supervisor, testing_operator. Hanya admin yang bisa membuka Roles dan Users.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -96,6 +96,38 @@
     },
     {
       "key": "product_sku",
+      "value": ""
+    },
+    {
+      "key": "stock_product_id",
+      "value": ""
+    },
+    {
+      "key": "stock_rack_from_id",
+      "value": ""
+    },
+    {
+      "key": "stock_rack_to_id",
+      "value": ""
+    },
+    {
+      "key": "operator_id",
+      "value": ""
+    },
+    {
+      "key": "movement_id",
+      "value": ""
+    },
+    {
+      "key": "adjustment_id",
+      "value": ""
+    },
+    {
+      "key": "handover_id",
+      "value": ""
+    },
+    {
+      "key": "handover2_id",
       "value": ""
     }
   ],
@@ -1821,6 +1853,1029 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"sku\": \"{{product_sku}}\",\n  \"name\": \"Barang Diubah\",\n  \"category_id\": {{category_id}},\n  \"base_unit_id\": {{unit_id}},\n  \"min_stock\": 20,\n  \"units\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stok - data seeder",
+      "item": [
+        {
+          "name": "Ambil barang dan rak GJP-001 dari stok seeder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"stock_product_id\", json.data[0].product_id);",
+                  "pm.collectionVariables.set(\"stock_rack_from_id\", json.data[0].rack_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventories"
+              ],
+              "query": [
+                {
+                  "key": "filters[0][field]",
+                  "value": "rack.code",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "GJP-001",
+                  "disabled": false
+                },
+                {
+                  "key": "sort_by",
+                  "value": "quantity",
+                  "disabled": false
+                },
+                {
+                  "key": "sort_dir",
+                  "value": "desc",
+                  "disabled": false
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cari rak tujuan (GJP-002)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"stock_rack_to_id\", json.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/racks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "racks"
+              ],
+              "query": [
+                {
+                  "key": "filters[0][field]",
+                  "value": "code",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "GJP-002",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cari pengguna operator",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"operator_id\", json.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "filters[0][field]",
+                  "value": "username",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "testing_operator",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventories",
+      "item": [
+        {
+          "name": "List Inventories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventories"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][field]",
+                  "value": "product_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "{{stock_product_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[1][field]",
+                  "value": "rack.warehouse_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[1][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[1][value]",
+                  "value": "{{warehouse_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[2][field]",
+                  "value": "rack.warehouse.branch_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[2][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[2][value]",
+                  "value": "{{branch_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[3][field]",
+                  "value": "quantity",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[3][operator]",
+                  "value": "gte",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[3][value]",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_dir",
+                  "value": "asc",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movements",
+      "item": [
+        {
+          "name": "Create Movement (barang masuk)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"movement_id\", json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "movements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{stock_product_id}},\n  \"quantity\": 5,\n  \"rack_to_id\": {{stock_rack_from_id}},\n  \"note\": \"Penerimaan dari pemasok\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Movement (pindah rak)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "movements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{stock_product_id}},\n  \"quantity\": 2,\n  \"rack_from_id\": {{stock_rack_from_id}},\n  \"rack_to_id\": {{stock_rack_to_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Movement (barang keluar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "movements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{stock_product_id}},\n  \"quantity\": 1,\n  \"rack_from_id\": {{stock_rack_to_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Movements",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/movements",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "movements"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][field]",
+                  "value": "product_id",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": false
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "{{stock_product_id}}",
+                  "disabled": false
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_dir",
+                  "value": "desc",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Adjustments",
+      "item": [
+        {
+          "name": "Create Adjustment (barang rusak)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"adjustment_id\", json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/adjustments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "adjustments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Hasil pengecekan rak\",\n  \"items\": [\n    {\n      \"product_id\": {{stock_product_id}},\n      \"quantity\": -1,\n      \"rack_id\": {{stock_rack_from_id}},\n      \"reason\": \"damaged\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Adjustments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/adjustments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "adjustments"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_dir",
+                  "value": "desc",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Adjustment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/adjustments/{{adjustment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "adjustments",
+                "{{adjustment_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Adjustment (Batalkan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/adjustments/{{adjustment_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "adjustments",
+                "{{adjustment_id}}",
+                "cancel"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Handovers",
+      "item": [
+        {
+          "name": "Create Handover (Ambil Barang)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"handover_id\", json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/handovers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Pindah ke rak tujuan\",\n  \"items\": [\n    {\n      \"product_id\": {{stock_product_id}},\n      \"quantity\": 1,\n      \"rack_from_id\": {{stock_rack_from_id}},\n      \"rack_to_id\": {{stock_rack_to_id}}\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "List Handovers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/handovers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][field]",
+                  "value": "status",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][operator]",
+                  "value": "eq",
+                  "disabled": true
+                },
+                {
+                  "key": "filters[0][value]",
+                  "value": "taken",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_dir",
+                  "value": "desc",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "15",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Handover",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/handovers/{{handover_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers",
+                "{{handover_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transfer Handover (Serah Barang)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/handovers/{{handover_id}}/transfer",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers",
+                "{{handover_id}}",
+                "transfer"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"custody_to_id\": {{operator_id}},\n  \"note\": \"Ganti shift\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Complete Handover (Set Selesai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/handovers/{{handover_id}}/complete",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers",
+                "{{handover_id}}",
+                "complete"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Sudah ditaruh di rak\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel Handover (setelah Set Selesai)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/handovers/{{handover_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers",
+                "{{handover_id}}",
+                "cancel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Salah rak\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Handover (untuk dibatalkan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"handover2_id\", json.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/handovers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": {{stock_product_id}},\n      \"quantity\": 1,\n      \"rack_from_id\": {{stock_rack_from_id}},\n      \"rack_to_id\": {{stock_rack_to_id}}\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancel Handover (Batalkan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/handovers/{{handover2_id}}/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "handovers",
+                "{{handover2_id}}",
+                "cancel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Salah ambil\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

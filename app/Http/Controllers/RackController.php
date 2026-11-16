@@ -5,13 +5,23 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Rack\IndexRackRequest;
 use App\Http\Requests\Rack\RackRequest;
 use App\Http\Resources\RackResource;
+use App\Models\Inventory;
 use App\Models\Rack;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class RackController extends Controller
 {
+    public function destroy(Rack $rack): JsonResponse
+    {
+        $rack->delete();
+
+        return response()->json(['message' => __('index.deleted', ['resource' => __('index.rack')])]);
+    }
+
     public function index(IndexRackRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -35,6 +45,13 @@ class RackController extends Controller
         return RackResource::collection($racks);
     }
 
+    public function show(Rack $rack): RackResource
+    {
+        $rack->load('warehouse');
+
+        return RackResource::make($rack);
+    }
+
     public function store(RackRequest $request): RackResource
     {
         $param = $request->validated();
@@ -52,33 +69,40 @@ class RackController extends Controller
         return RackResource::make($rack)->additional(['message' => $message]);
     }
 
-    public function show(Rack $rack): RackResource
-    {
-        $rack->load('warehouse');
-
-        return RackResource::make($rack);
-    }
-
     public function update(RackRequest $request, Rack $rack): RackResource
     {
         $param = $request->validated();
+        $return = new RackResource(null);
 
-        $rack->update([
-            ...$param,
-            'updated_by_id' => $request->user()->id,
-        ]);
+        DB::transaction(function () use ($param, $rack, $request, &$return) {
+            $lockedRack = Rack::query()
+                ->where('id', $rack->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $rack->load('warehouse');
+            $deactivating = ! $request->boolean('active', $lockedRack->active);
 
-        $message = __('index.updated', ['resource' => __('index.rack')]);
+            $hasIncoming = Inventory::query()
+                ->where('rack_id', $lockedRack->id)
+                ->where('quantity_incoming', '>', 0)
+                ->exists();
 
-        return RackResource::make($rack)->additional(['message' => $message]);
-    }
+            if ($deactivating && $hasIncoming) {
+                throw ValidationException::withMessages(['active' => __('index.rack.has_incoming')]);
+            }
 
-    public function destroy(Rack $rack): JsonResponse
-    {
-        $rack->delete();
+            $lockedRack->update([
+                ...$param,
+                'updated_by_id' => $request->user()->id,
+            ]);
 
-        return response()->json(['message' => __('index.deleted', ['resource' => __('index.rack')])]);
+            $lockedRack->load('warehouse');
+
+            $message = __('index.updated', ['resource' => __('index.rack')]);
+
+            $return = RackResource::make($lockedRack)->additional(['message' => $message]);
+        });
+
+        return $return;
     }
 }

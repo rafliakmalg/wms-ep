@@ -25,7 +25,10 @@ class FilterCondition implements ValidationRule
             return;
         }
 
-        if (! is_string($value['field']) || ! isset($this->filters[$value['field']])) {
+        if (
+            ! is_string($value['field'])
+            || ! isset($this->filters[$value['field']])
+        ) {
             $fail(__('validation.filter_field'));
 
             return;
@@ -33,7 +36,10 @@ class FilterCondition implements ValidationRule
 
         $type = $this->filters[$value['field']];
 
-        if (! is_string($value['operator']) || ! in_array($value['operator'], Filter::operators($type), true)) {
+        if (
+            ! is_string($value['operator'])
+            || ! in_array($value['operator'], Filter::operators($type), true)
+        ) {
             $fail(__('validation.filter_operator', ['field' => $value['field']]));
 
             return;

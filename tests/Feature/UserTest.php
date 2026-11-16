@@ -86,18 +86,22 @@ class UserTest extends TestCase
             ->assertJsonMissingPath('data.0.password');
     }
 
-    public function test_non_admin_cannot_manage_users(): void
+    public function test_non_admin_can_list_users_but_cannot_manage_them(): void
     {
         Sanctum::actingAs(User::factory()->create());
+        $user = User::factory()->create();
         $role = Role::factory()->create();
 
-        $this->getJson('/api/users')->assertForbidden();
+        $this->getJson('/api/users')->assertOk()->assertJsonStructure(['data' => [['id', 'name', 'username']]]);
+        $this->getJson("/api/users/{$user->id}")->assertForbidden();
         $this->postJson('/api/users', [
             'username' => 'a',
             'name' => 'A',
             'password' => 'password',
             'role_id' => $role->id,
         ])->assertForbidden();
+        $this->putJson("/api/users/{$user->id}", ['name' => 'B'])->assertForbidden();
+        $this->deleteJson("/api/users/{$user->id}")->assertForbidden();
     }
 
     public function test_show_returns_user_with_role(): void

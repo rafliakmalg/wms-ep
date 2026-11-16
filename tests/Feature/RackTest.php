@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Inventory;
 use App\Models\Rack;
 use App\Models\User;
 use App\Models\Warehouse;
@@ -169,5 +170,29 @@ class RackTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['code']);
+    }
+
+    public function test_update_rejects_deactivating_rack_with_incoming_stock(): void
+    {
+        $this->signIn();
+        $rack = Rack::factory()->create();
+        Inventory::factory()->create([
+            'quantity_incoming' => 5,
+            'rack_id' => $rack->id,
+        ]);
+
+        $payload = [
+            'active' => false,
+            'code' => $rack->code,
+            'warehouse_id' => $rack->warehouse_id,
+        ];
+
+        $errors = $this->putJson("/api/racks/{$rack->id}", $payload)->assertUnprocessable()->json('errors');
+
+        $this->assertSame('Rak masih memiliki barang dalam perjalanan.', $errors['active'][0]);
+
+        Inventory::query()->update(['quantity_incoming' => 0]);
+
+        $this->putJson("/api/racks/{$rack->id}", $payload)->assertOk()->assertJsonPath('data.active', false);
     }
 }

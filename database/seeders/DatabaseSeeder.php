@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             LocationSeeder::class,
             UnitSeeder::class,
             ProductSeeder::class,
+            AdjustmentSeeder::class,
         ]);
     }
 }

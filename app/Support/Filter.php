@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Contracts\Filterable;
 use App\Rules\FilterCondition;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class Filter
 {
@@ -46,8 +47,20 @@ class Filter
 
         foreach ($conditions as $condition) {
             $field = $condition['field'];
+            $path = explode('.', $field);
+            $column = array_pop($path);
 
-            self::condition($query, $field, $types[$field], $condition['operator'], $condition['value']);
+            if ($path === []) {
+                self::condition($query, $column, $types[$field], $condition['operator'], $condition['value']);
+
+                continue;
+            }
+
+            $relationPath = implode('.', array_map(Str::camel(...), $path));
+
+            $query->whereHas($relationPath, function (Builder $relation) use ($column, $types, $field, $condition) {
+                self::condition($relation, $column, $types[$field], $condition['operator'], $condition['value']);
+            });
         }
 
         return $query;

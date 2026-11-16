@@ -2,10 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Http\Requests\Adjustment\AdjustmentRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Branch\BranchRequest;
 use App\Http\Requests\Category\CategoryRequest;
+use App\Http\Requests\Handover\HandoverActionRequest;
+use App\Http\Requests\Handover\HandoverRequest;
+use App\Http\Requests\Handover\TransferHandoverRequest;
 use App\Http\Requests\IndexRequest;
+use App\Http\Requests\Movement\MovementRequest;
 use App\Http\Requests\Product\IndexProductRequest;
 use App\Http\Requests\Product\ProductRequest;
 use App\Http\Requests\Rack\RackRequest;
@@ -84,13 +89,18 @@ class LangTest extends TestCase
     public function test_request_attributes_are_all_translated(): void
     {
         $requests = [
+            AdjustmentRequest::class,
             BranchRequest::class,
             CategoryRequest::class,
+            HandoverActionRequest::class,
+            HandoverRequest::class,
             IndexProductRequest::class,
             LoginRequest::class,
+            MovementRequest::class,
             ProductRequest::class,
             RackRequest::class,
             RoleRequest::class,
+            TransferHandoverRequest::class,
             UnitRequest::class,
             UserRequest::class,
             WarehouseRequest::class,
