@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "wms-ep",
-    "description": "Collection untuk wms-ep (Laravel API).\n\n1. Jalankan `php artisan migrate:fresh --seed`. Server lewat Herd (`herd link wms-ep`) atau `php artisan serve`.\n2. Atur variabel `base_url` bila server tidak di http://wms-ep.test (misalnya `php artisan serve`: http://127.0.0.1:8000/api).\n3. Jalankan Auth > Login lebih dulu. Token tersimpan otomatis di variabel `token`.\n4. Jalankan folder dari atas ke bawah (atau Run collection). ID hasil Create tersimpan otomatis.\n5. Folder Cleanup menghapus data dari anak ke induk. Menghapus induk yang masih dipakai mengembalikan 409.\nFolder Stok memakai stok awal dari seeder (`AdjustmentSeeder`, berupa dokumen penyesuaian), jadi `migrate:fresh --seed` wajib. Pergerakan, penyesuaian, dan pemindahan tidak bisa dihapus (riwayat).\nAkun seeder (password semuanya `admin123`): testing_admin, testing_supervisor, testing_operator. Hanya admin yang bisa membuka Roles dan Users.",
+    "description": "Collection untuk wms-ep (Laravel API).\n\n1. Jalankan `php artisan migrate:fresh --seed`. Server lewat Herd (`herd link wms-ep`) atau `php artisan serve`.\n2. Atur variabel `base_url` bila server tidak di http://wms-ep.test (misalnya `php artisan serve`: http://127.0.0.1:8000/api).\n3. Jalankan Auth > Login lebih dulu. Token tersimpan otomatis di variabel `token`.\n4. Jalankan folder dari atas ke bawah (atau Run collection). ID hasil Create tersimpan otomatis.\n5. Folder Cleanup menghapus data dari anak ke induk. Menghapus induk yang masih dipakai mengembalikan 409.\nFolder Stok memakai stok awal dari seeder (`AdjustmentSeeder`, berupa dokumen penyesuaian), jadi `migrate:fresh --seed` wajib. Pergerakan, penyesuaian, dan pemindahan tidak bisa dihapus (riwayat).\nAkun seeder (password semuanya `admin123`): admin, supervisor, operator. Hanya admin yang bisa membuka Roles dan Users.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -173,7 +173,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"testing_admin\",\n  \"password\": \"admin123\"\n}",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -211,6 +211,40 @@
               "path": [
                 "auth",
                 "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Show Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard"
               ]
             }
           }
@@ -2022,7 +2056,7 @@
                 },
                 {
                   "key": "filters[0][value]",
-                  "value": "testing_operator",
+                  "value": "operator",
                   "disabled": false
                 }
               ]

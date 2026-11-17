@@ -98,7 +98,7 @@ class AuthTest extends TestCase
 
         foreach (['admin', 'supervisor', 'operator'] as $role) {
             $this->postJson('/api/auth/login', [
-                'username' => "testing_{$role}",
+                'username' => $role,
                 'password' => 'admin123',
             ])
                 ->assertOk()

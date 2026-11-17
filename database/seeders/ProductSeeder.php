@@ -19,7 +19,7 @@ class ProductSeeder extends Seeder
             ['LTP-002', 'Lenovo IdeaPad Slim 3 15IAH8', 'Laptop', 'UNIT', 5, ['DUS' => 5]],
             ['LTP-003', 'HP Pavilion 14-dv2', 'Laptop', 'UNIT', 5, ['DUS' => 5]],
             ['LTP-004', 'Acer Aspire 5 A515-57', 'Laptop', 'UNIT', 5, ['DUS' => 5]],
-            ['LTP-005', 'Apple MacBook Air 13 M2 256GB', 'Laptop', 'UNIT', 3, []],
+            ['LTP-005', 'Apple MacBook Air 13 M2 256GB', 'Laptop', 'UNIT', 15, []],
 
             ['SMP-001', 'Samsung Galaxy A55 5G 8/256GB', 'Smartphone', 'UNIT', 10, ['DUS' => 10]],
             ['SMP-002', 'Xiaomi Redmi Note 13 8/256GB', 'Smartphone', 'UNIT', 10, ['DUS' => 10]],
@@ -34,7 +34,7 @@ class ProductSeeder extends Seeder
             ['AUD-001', 'Sony WH-CH520 Headphone Bluetooth', 'Audio', 'PCS', 10, ['BOX' => 10]],
             ['AUD-002', 'JBL Flip 6 Portable Speaker', 'Audio', 'PCS', 10, ['BOX' => 6]],
             ['AUD-003', 'Apple AirPods Pro 2nd Gen USB-C', 'Audio', 'PCS', 10, []],
-            ['AUD-004', 'Samsung Galaxy Buds2 Pro', 'Audio', 'PCS', 10, ['BOX' => 10]],
+            ['AUD-004', 'Samsung Galaxy Buds2 Pro', 'Audio', 'PCS', 30, ['BOX' => 10]],
             ['AUD-005', 'Logitech Z313 Speaker 2.1', 'Audio', 'PCS', 5, ['BOX' => 4]],
 
             ['MON-001', 'LG UltraGear 24GN60R 24 Inch', 'Monitor', 'UNIT', 5, ['DUS' => 4]],
@@ -55,7 +55,7 @@ class ProductSeeder extends Seeder
             ['STO-002', 'Samsung T7 Portable SSD 1TB', 'Penyimpanan', 'PCS', 15, ['BOX' => 10]],
             ['STO-003', 'WD Elements 2TB Portable HDD', 'Penyimpanan', 'PCS', 15, ['BOX' => 10]],
             ['STO-004', 'Kingston A400 480GB SSD SATA', 'Penyimpanan', 'PCS', 20, ['BOX' => 10]],
-            ['STO-005', 'Seagate Barracuda 1TB HDD', 'Penyimpanan', 'PCS', 15, ['BOX' => 10]],
+            ['STO-005', 'Seagate Barracuda 1TB HDD', 'Penyimpanan', 'PCS', 50, ['BOX' => 10]],
 
             ['ACC-001', 'Logitech M331 Silent Mouse Wireless', 'Aksesoris', 'PCS', 30, [
                 'BOX' => 10,
@@ -74,7 +74,7 @@ class ProductSeeder extends Seeder
             ['ACC-006', 'Logitech MK295 Keyboard Mouse Combo', 'Aksesoris', 'SET', 15, ['BOX' => 6]],
 
             ['PRN-001', 'Canon PIXMA G2010 Ink Tank', 'Printer', 'UNIT', 5, []],
-            ['PRN-002', 'Epson EcoTank L3210', 'Printer', 'UNIT', 5, []],
+            ['PRN-002', 'Epson EcoTank L3210', 'Printer', 'UNIT', 20, []],
             ['PRN-003', 'HP DeskJet Ink Advantage 2336', 'Printer', 'UNIT', 5, []],
         ];
 

@@ -58,6 +58,11 @@ class Product extends Model implements Filterable
         return $this->belongsTo(Category::class);
     }
 
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
     public function productUnits(): HasMany
     {
         return $this->hasMany(ProductUnit::class);

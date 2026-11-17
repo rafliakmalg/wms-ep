@@ -4,6 +4,7 @@ use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HandoverController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\MovementController;
@@ -25,6 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('adjustments/{adjustment}/cancel', [AdjustmentController::class, 'cancel'])->name('adjustments.cancel');
     Route::apiResource('branches', BranchController::class);
     Route::apiResource('categories', CategoryController::class);
+    Route::get('dashboard', [DashboardController::class, 'show'])->name('dashboard.show');
     Route::apiResource('handovers', HandoverController::class)->only(['index', 'show', 'store']);
     Route::post('handovers/{handover}/cancel', [HandoverController::class, 'cancel'])->name('handovers.cancel');
     Route::post('handovers/{handover}/complete', [HandoverController::class, 'complete'])->name('handovers.complete');
