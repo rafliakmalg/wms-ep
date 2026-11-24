@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('branch_id')->constrained()->restrictOnDelete();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
+            $table->foreignId('updated_by_id')->nullable();
             $table->string('address')->nullable();
             $table->string('code')->unique();
             $table->string('name');

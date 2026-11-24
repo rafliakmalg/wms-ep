@@ -7,9 +7,11 @@ use App\Http\Resources\InventoryResource;
 use App\Models\Inventory;
 use App\Support\Filter;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class InventoryController extends Controller
 {
+    #[Authorize('inventory.read')]
     public function index(IndexInventoryRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();

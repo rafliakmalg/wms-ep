@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Branch;
 use App\Models\User;
+use App\Support\Jwt;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,99 +12,94 @@ class AuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_rejects_inactive_user(): void
+    /**
+     * @param  array<string, mixed>  $claims
+     */
+    private function token(array $claims = [], ?string $privateKeyPath = null): string
     {
-        User::factory()->create([
-            'username' => 'a',
-            'active' => false,
+        if ($privateKeyPath) {
+            config(['jwt.private_key_path' => $privateKeyPath]);
+        }
+
+        $now = time();
+
+        return Jwt::encode([
+            'sub' => 7,
+            'name' => 'Budi',
+            'roles' => ['operator'],
+            'permissions' => ['branch.read'],
+            'iat' => $now,
+            'exp' => $now + 3600,
+            ...$claims,
         ]);
-
-        $this->postJson('/api/auth/login', [
-            'username' => 'a',
-            'password' => 'password',
-        ])
-            ->assertUnprocessable();
     }
 
-    public function test_login_rejects_unknown_username(): void
+    public function test_expired_token_is_rejected(): void
     {
-        $this->postJson('/api/auth/login', [
-            'username' => 'x',
-            'password' => 'password',
-        ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['username']);
+        $this->withToken($this->token(['exp' => time() - 120]))->getJson('/api/auth/me')->assertUnauthorized();
     }
 
-    public function test_login_rejects_wrong_password(): void
-    {
-        User::factory()->create(['username' => 'a']);
-
-        $this->postJson('/api/auth/login', [
-            'username' => 'a',
-            'password' => 'salah',
-        ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['username']);
-    }
-
-    public function test_login_requires_username_and_password(): void
-    {
-        $this->postJson('/api/auth/login', [])->assertJsonValidationErrors(['username', 'password']);
-    }
-
-    public function test_login_returns_token_and_user_with_role(): void
-    {
-        $user = User::factory()->create(['username' => 'a']);
-
-        $this->postJson('/api/auth/login', [
-            'username' => 'a',
-            'password' => 'password',
-        ])
-            ->assertOk()
-            ->assertJsonPath('data.user.id', $user->id)
-            ->assertJsonPath('data.user.role.id', $user->role_id)
-            ->assertJsonMissingPath('data.user.password')
-            ->assertJsonStructure(['data' => ['token', 'user']]);
-    }
-
-    public function test_logout_deletes_the_token(): void
-    {
-        $user = User::factory()->create();
-        $token = $user->createToken('test')->plainTextToken;
-
-        $this->withToken($token)->postJson('/api/auth/logout')->assertNoContent();
-
-        $this->assertDatabaseCount('personal_access_tokens', 0);
-    }
-
-    public function test_me_requires_authentication(): void
+    public function test_guest_is_rejected(): void
     {
         $this->getJson('/api/auth/me')->assertUnauthorized();
     }
 
-    public function test_me_returns_current_user_with_role(): void
+    public function test_me_returns_user_lang_and_permissions_from_the_token(): void
     {
-        $user = User::factory()->create();
-        $token = $user->createToken('test')->plainTextToken;
-
-        $this->withToken($token)->getJson('/api/auth/me')
+        $response = $this->withToken($this->token())->getJson('/api/auth/me')
             ->assertOk()
-            ->assertJsonPath('data.id', $user->id)
-            ->assertJsonPath('data.role.id', $user->role_id);
+            ->assertJsonPath('data.id', 7)
+            ->assertJsonPath('data.name', 'Budi')
+            ->assertJsonPath('permissions', ['branch.read']);
+
+        $this->assertSame('Cabang', $response->json('lang.branch'));
     }
 
-    public function test_seeded_users_can_login_with_the_default_password(): void
+    public function test_missing_permission_is_forbidden_but_granted_permission_works(): void
     {
-        $this->seed();
+        $token = $this->token(['permissions' => ['branch.read']]);
 
-        foreach (['admin', 'supervisor', 'operator'] as $role) {
-            $this->postJson('/api/auth/login', [
-                'username' => $role,
-                'password' => 'admin123',
-            ])
-                ->assertOk()
-                ->assertJsonPath('data.user.role.name', $role);
-        }
+        $this->withToken($token)->getJson('/api/branches')->assertOk();
+        $this->withToken($token)->postJson('/api/branches', [
+            'code' => 'JKT',
+            'name' => 'Jakarta',
+        ])->assertForbidden();
+
+        $this->assertSame(0, Branch::count());
+    }
+
+    public function test_token_creates_the_user_on_first_request_and_keeps_the_name_current(): void
+    {
+        $this->assertDatabaseMissing('users', ['id' => 7]);
+
+        $this->withToken($this->token())->getJson('/api/auth/me')->assertOk();
+        $this->assertDatabaseHas('users', ['id' => 7, 'name' => 'Budi']);
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withToken($this->token(['name' => 'Budi Santoso']))->getJson('/api/auth/me')->assertOk();
+        $this->assertDatabaseHas('users', ['id' => 7, 'name' => 'Budi Santoso']);
+        $this->assertSame(1, User::count());
+    }
+
+    public function test_token_signed_with_another_key_is_rejected(): void
+    {
+        $forged = $this->token(privateKeyPath: $this->keyPath('foreign-private'));
+
+        $this->withToken($forged)->getJson('/api/auth/me')->assertUnauthorized();
+    }
+
+    public function test_token_without_signature_is_rejected(): void
+    {
+        $payload = rtrim(strtr(base64_encode(json_encode([
+            'sub' => 7,
+            'name' => 'Budi',
+            'roles' => [],
+            'permissions' => ['branch.read'],
+            'exp' => time() + 3600,
+        ])), '+/', '-_'), '=');
+        $header = rtrim(strtr(base64_encode(json_encode(['alg' => 'none', 'typ' => 'JWT'])), '+/', '-_'), '=');
+
+        $this->withToken("{$header}.{$payload}.")->getJson('/api/branches')->assertUnauthorized();
     }
 }

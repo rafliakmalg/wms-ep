@@ -5,19 +5,20 @@ namespace App\Models;
 use App\Contracts\Filterable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['active', 'created_by_id', 'email', 'name', 'password', 'role_id', 'updated_by_id', 'username'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['active', 'id', 'name'])]
 class User extends Authenticatable implements Filterable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory;
+
+    /** @var array<int, string> */
+    public array $permissions = [];
+
+    /** @var array<int, string> */
+    public array $roles = [];
 
     protected $attributes = [
         'active' => true,
@@ -32,7 +33,6 @@ class User extends Authenticatable implements Filterable
     {
         return [
             'active' => 'boolean',
-            'password' => 'hashed',
         ];
     }
 
@@ -43,16 +43,8 @@ class User extends Authenticatable implements Filterable
     {
         return [
             'name' => 'string',
-            'username' => 'string',
-            'email' => 'string',
-            'role_id' => 'integer',
             'active' => 'boolean',
             'created_at' => 'date',
         ];
-    }
-
-    public function role(): BelongsTo
-    {
-        return $this->belongsTo(Role::class);
     }
 }

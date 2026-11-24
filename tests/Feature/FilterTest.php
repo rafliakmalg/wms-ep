@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Filter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class FilterTest extends TestCase
@@ -48,7 +49,7 @@ class FilterTest extends TestCase
     {
         parent::setUp();
 
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsUser(User::factory()->create());
         $cables = Category::factory()->create();
 
         $this->usb = Product::factory()->create([
@@ -160,18 +161,30 @@ class FilterTest extends TestCase
 
     public function test_null_operator(): void
     {
-        Sanctum::actingAs(User::factory()->admin()->create());
-        User::factory()->create([
-            'email' => null,
-            'username' => 'tanpa_email',
+        Branch::factory()->create([
+            'code' => 'TNP',
+            'phone' => null,
+        ]);
+        Branch::factory()->create([
+            'code' => 'ADA',
+            'phone' => '0211234567',
         ]);
 
-        $withoutEmail = $this->getJson('/api/users?'.$this->queryString([['email', 'null', '1']], false))->assertOk()->json('data');
-        $withEmail = $this->getJson('/api/users?'.$this->queryString([['email', 'null', '0']], false))->assertOk()->json('data');
+        $branches = new class extends Branch
+        {
+            protected $table = 'branches';
 
-        $this->assertSame(['tanpa_email'], array_column($withoutEmail, 'username'));
-        $this->assertNotContains('tanpa_email', array_column($withEmail, 'username'));
-        $this->assertCount(2, $withEmail);
+            public function filterable(): array
+            {
+                return ['phone' => 'string'];
+            }
+        };
+
+        $withoutPhone = Filter::apply($branches->newQuery(), [['field' => 'phone', 'operator' => 'null', 'value' => '1']]);
+        $withPhone = Filter::apply($branches->newQuery(), [['field' => 'phone', 'operator' => 'null', 'value' => '0']]);
+
+        $this->assertSame(['TNP'], $withoutPhone->pluck('code')->all());
+        $this->assertSame(['ADA'], $withPhone->pluck('code')->all());
     }
 
     public function test_rejects_invalid_values(): void

@@ -11,11 +11,13 @@ use App\Support\Filter;
 use App\Support\Quantity;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class AdjustmentController extends Controller
 {
+    #[Authorize('adjustment.cancel')]
     public function cancel(Request $request, Adjustment $adjustment): AdjustmentResource
     {
         $userId = $request->user()->id;
@@ -86,6 +88,7 @@ class AdjustmentController extends Controller
         Inventory::applyChanges($changes, $userId);
     }
 
+    #[Authorize('adjustment.read')]
     public function index(IndexAdjustmentRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -137,6 +140,7 @@ class AdjustmentController extends Controller
         Inventory::applyChanges($changes, $userId);
     }
 
+    #[Authorize('adjustment.read')]
     public function show(Adjustment $adjustment): AdjustmentResource
     {
         $adjustment->load(['items.product', 'items.rack.warehouse']);
@@ -144,6 +148,7 @@ class AdjustmentController extends Controller
         return AdjustmentResource::make($adjustment);
     }
 
+    #[Authorize('adjustment.create')]
     public function store(AdjustmentRequest $request): AdjustmentResource
     {
         $param = $request->validated();

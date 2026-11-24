@@ -9,9 +9,11 @@ use App\Models\Unit;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class UnitController extends Controller
 {
+    #[Authorize('unit.read')]
     public function index(IndexUnitRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -35,6 +37,7 @@ class UnitController extends Controller
         return UnitResource::collection($units);
     }
 
+    #[Authorize('unit.create')]
     public function store(UnitRequest $request): UnitResource
     {
         $param = $request->validated();
@@ -50,11 +53,13 @@ class UnitController extends Controller
         return UnitResource::make($unit)->additional(['message' => $message]);
     }
 
+    #[Authorize('unit.read')]
     public function show(Unit $unit): UnitResource
     {
         return UnitResource::make($unit);
     }
 
+    #[Authorize('unit.update')]
     public function update(UnitRequest $request, Unit $unit): UnitResource
     {
         $param = $request->validated();
@@ -69,6 +74,7 @@ class UnitController extends Controller
         return UnitResource::make($unit)->additional(['message' => $message]);
     }
 
+    #[Authorize('unit.delete')]
     public function destroy(Unit $unit): JsonResponse
     {
         $unit->delete();

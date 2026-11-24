@@ -10,11 +10,13 @@ use App\Models\Rack;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class RackController extends Controller
 {
+    #[Authorize('rack.delete')]
     public function destroy(Rack $rack): JsonResponse
     {
         $rack->delete();
@@ -22,6 +24,7 @@ class RackController extends Controller
         return response()->json(['message' => __('index.deleted', ['resource' => __('index.rack')])]);
     }
 
+    #[Authorize('rack.read')]
     public function index(IndexRackRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -45,6 +48,7 @@ class RackController extends Controller
         return RackResource::collection($racks);
     }
 
+    #[Authorize('rack.read')]
     public function show(Rack $rack): RackResource
     {
         $rack->load('warehouse');
@@ -52,6 +56,7 @@ class RackController extends Controller
         return RackResource::make($rack);
     }
 
+    #[Authorize('rack.create')]
     public function store(RackRequest $request): RackResource
     {
         $param = $request->validated();
@@ -69,6 +74,7 @@ class RackController extends Controller
         return RackResource::make($rack)->additional(['message' => $message]);
     }
 
+    #[Authorize('rack.update')]
     public function update(RackRequest $request, Rack $rack): RackResource
     {
         $param = $request->validated();

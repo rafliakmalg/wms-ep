@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('handovers', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->foreignId('custody_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
+            $table->foreignId('custody_id');
+            $table->foreignId('updated_by_id')->nullable();
             $table->string('code')->unique();
             $table->text('note')->nullable();
             $table->string('status')->default('taken');

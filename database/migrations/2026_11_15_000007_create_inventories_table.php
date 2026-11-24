@@ -15,10 +15,10 @@ return new class extends Migration
         Schema::create('inventories', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
             $table->foreignId('rack_id')->constrained()->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable();
             $table->decimal('quantity', 15, 3)->default(0);
             $table->decimal('quantity_incoming', 15, 3)->default(0);
 

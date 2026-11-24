@@ -14,6 +14,7 @@ use App\Support\Quantity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class DashboardController extends Controller
 {
@@ -87,6 +88,7 @@ class DashboardController extends Controller
             ->get();
     }
 
+    #[Authorize('dashboard.read')]
     public function show(Request $request): DashboardResource
     {
         $takenHandovers = $this->takenHandovers($request);
@@ -166,7 +168,7 @@ class DashboardController extends Controller
     {
         $handovers = Handover::query()->where('status', Handover::STATUS_TAKEN);
 
-        if ($request->user()->role->name === 'operator') {
+        if (! $request->user()->can('handover.read_all')) {
             $handovers->where('custody_id', $request->user()->id);
         }
 

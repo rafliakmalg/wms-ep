@@ -14,6 +14,7 @@ use App\Models\Rack;
 use App\Support\Filter;
 use App\Support\Quantity;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -26,6 +27,7 @@ class HandoverController extends Controller
         }
     }
 
+    #[Authorize('handover.cancel')]
     public function cancel(HandoverActionRequest $request, Handover $handover): HandoverResource
     {
         $param = $request->validated();
@@ -99,6 +101,7 @@ class HandoverController extends Controller
         ]);
     }
 
+    #[Authorize('handover.complete')]
     public function complete(HandoverActionRequest $request, Handover $handover): HandoverResource
     {
         $param = $request->validated();
@@ -122,6 +125,7 @@ class HandoverController extends Controller
         return $return;
     }
 
+    #[Authorize('handover.read')]
     public function index(IndexHandoverRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -223,6 +227,7 @@ class HandoverController extends Controller
         ]);
     }
 
+    #[Authorize('handover.read')]
     public function show(Handover $handover): HandoverResource
     {
         $this->loadDetail($handover);
@@ -230,6 +235,7 @@ class HandoverController extends Controller
         return HandoverResource::make($handover);
     }
 
+    #[Authorize('handover.create')]
     public function store(HandoverRequest $request): HandoverResource
     {
         $param = $request->validated();
@@ -315,6 +321,7 @@ class HandoverController extends Controller
         Inventory::applyChanges($changes, $userId);
     }
 
+    #[Authorize('handover.transfer')]
     public function transfer(TransferHandoverRequest $request, Handover $handover): HandoverResource
     {
         $param = $request->validated();

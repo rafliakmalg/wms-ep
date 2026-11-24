@@ -9,7 +9,6 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
-use Laravel\Sanctum\Sanctum;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -35,7 +34,7 @@ class ProductTest extends TestCase
     private function signIn(): User
     {
         $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $this->actingAsUser($user);
 
         return $user;
     }

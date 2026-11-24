@@ -9,9 +9,11 @@ use App\Models\Warehouse;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class WarehouseController extends Controller
 {
+    #[Authorize('warehouse.read')]
     public function index(IndexWarehouseRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -35,6 +37,7 @@ class WarehouseController extends Controller
         return WarehouseResource::collection($warehouses);
     }
 
+    #[Authorize('warehouse.create')]
     public function store(WarehouseRequest $request): WarehouseResource
     {
         $param = $request->validated();
@@ -52,6 +55,7 @@ class WarehouseController extends Controller
         return WarehouseResource::make($warehouse)->additional(['message' => $message]);
     }
 
+    #[Authorize('warehouse.read')]
     public function show(Warehouse $warehouse): WarehouseResource
     {
         $warehouse->load('branch');
@@ -59,6 +63,7 @@ class WarehouseController extends Controller
         return WarehouseResource::make($warehouse);
     }
 
+    #[Authorize('warehouse.update')]
     public function update(WarehouseRequest $request, Warehouse $warehouse): WarehouseResource
     {
         $param = $request->validated();
@@ -75,6 +80,7 @@ class WarehouseController extends Controller
         return WarehouseResource::make($warehouse)->additional(['message' => $message]);
     }
 
+    #[Authorize('warehouse.delete')]
     public function destroy(Warehouse $warehouse): JsonResponse
     {
         $warehouse->delete();

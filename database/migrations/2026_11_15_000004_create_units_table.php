@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
+            $table->foreignId('updated_by_id')->nullable();
             $table->string('code')->unique();
             $table->string('name');
         });

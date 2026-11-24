@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class CategoryTest extends TestCase
@@ -16,7 +15,7 @@ class CategoryTest extends TestCase
     private function signIn(): User
     {
         $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $this->actingAsUser($user);
 
         return $user;
     }

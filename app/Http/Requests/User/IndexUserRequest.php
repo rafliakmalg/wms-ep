@@ -24,7 +24,7 @@ class IndexUserRequest extends IndexRequest
     {
         return [
             ...parent::rules(),
-            'sort_by' => ['string', Rule::in(['created_at', 'email', 'name', 'username'])],
+            'sort_by' => ['string', Rule::in(['created_at', 'name'])],
         ];
     }
 }

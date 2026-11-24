@@ -9,28 +9,24 @@ use App\Models\Inventory;
 use App\Models\Movement;
 use App\Models\Product;
 use App\Models\Rack;
-use App\Models\Role;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function signIn(?string $roleName = null): User
+    private function signIn(bool $seesAllHandovers = true): User
     {
-        $user = User::factory()->create();
+        $permissions = $this->allPermissions();
 
-        if ($roleName !== null) {
-            $user->update(['role_id' => Role::factory()->create(['name' => $roleName])->id]);
+        if ($seesAllHandovers) {
+            $permissions[] = 'handover.read_all';
         }
 
-        Sanctum::actingAs($user);
-
-        return $user;
+        return $this->actingAsUser(User::factory()->create(), $permissions);
     }
 
     public function test_guest_cannot_access_dashboard(): void
@@ -208,7 +204,7 @@ class DashboardTest extends TestCase
 
     public function test_taken_handovers_for_operator_only_include_own_custody(): void
     {
-        $operator = $this->signIn('operator');
+        $operator = $this->signIn(false);
         $mine = Handover::factory()->create([
             'custody_id' => $operator->id,
             'status' => Handover::STATUS_TAKEN,

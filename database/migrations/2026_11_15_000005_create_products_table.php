@@ -16,8 +16,8 @@ return new class extends Migration
             $table->timestamps();
             $table->foreignId('base_unit_id')->constrained('units')->restrictOnDelete();
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
+            $table->foreignId('updated_by_id')->nullable();
             $table->text('description')->nullable();
             $table->decimal('min_stock', 15, 3)->default(0);
             $table->string('name');

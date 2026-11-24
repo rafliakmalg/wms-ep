@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\Rack;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class StockVerifyTest extends TestCase
@@ -17,7 +16,7 @@ class StockVerifyTest extends TestCase
 
     private function runFlow(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsUser(User::factory()->create());
         $product = Product::factory()->create();
         $a = Rack::factory()->create();
         $b = Rack::factory()->create();

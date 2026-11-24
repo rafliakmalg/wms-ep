@@ -15,12 +15,12 @@ return new class extends Migration
         Schema::create('handover_items', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
             $table->foreignId('handover_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
             $table->foreignId('rack_from_id')->constrained('racks')->restrictOnDelete();
             $table->foreignId('rack_to_id')->constrained('racks')->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable();
             $table->decimal('quantity', 15, 3);
 
             $table->unique(['handover_id', 'product_id', 'rack_from_id', 'rack_to_id'], 'handover_items_unique');

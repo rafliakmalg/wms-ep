@@ -11,7 +11,6 @@ use App\Models\Rack;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class MovementTest extends TestCase
@@ -21,7 +20,7 @@ class MovementTest extends TestCase
     private function signIn(): User
     {
         $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $this->actingAsUser($user);
 
         return $user;
     }

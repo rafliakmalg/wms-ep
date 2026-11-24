@@ -16,10 +16,10 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('adjustment_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
             $table->foreignId('rack_id')->constrained()->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable();
             $table->decimal('quantity', 15, 3);
             $table->string('reason');
 

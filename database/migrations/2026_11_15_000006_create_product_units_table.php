@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('product_units', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->foreignId('unit_id')->constrained()->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable();
             $table->decimal('factor', 15, 6);
 
             $table->unique(['product_id', 'unit_id']);

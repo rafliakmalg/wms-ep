@@ -11,10 +11,12 @@ use App\Models\Rack;
 use App\Support\Filter;
 use App\Support\Quantity;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\DB;
 
 class MovementController extends Controller
 {
+    #[Authorize('movement.read')]
     public function index(IndexMovementRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -38,6 +40,7 @@ class MovementController extends Controller
         return MovementResource::collection($movements);
     }
 
+    #[Authorize('movement.create')]
     public function store(MovementRequest $request): MovementResource
     {
         $param = $request->validated();

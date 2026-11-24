@@ -9,11 +9,13 @@ use App\Models\Product;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
+    #[Authorize('product.read')]
     public function index(IndexProductRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -37,6 +39,7 @@ class ProductController extends Controller
         return ProductResource::collection($products);
     }
 
+    #[Authorize('product.create')]
     public function store(ProductRequest $request): ProductResource
     {
         $param = $request->validated();
@@ -62,6 +65,7 @@ class ProductController extends Controller
         return $return;
     }
 
+    #[Authorize('product.read')]
     public function show(Product $product): ProductResource
     {
         $product->load(['baseUnit', 'category', 'productUnits.unit']);
@@ -69,6 +73,7 @@ class ProductController extends Controller
         return ProductResource::make($product);
     }
 
+    #[Authorize('product.update')]
     public function update(ProductRequest $request, Product $product): ProductResource
     {
         $param = $request->validated();
@@ -94,6 +99,7 @@ class ProductController extends Controller
         return $return;
     }
 
+    #[Authorize('product.delete')]
     public function destroy(Product $product): JsonResponse
     {
         $product->delete();

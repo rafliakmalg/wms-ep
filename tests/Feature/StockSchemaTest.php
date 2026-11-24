@@ -15,7 +15,6 @@ use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class StockSchemaTest extends TestCase
@@ -215,7 +214,7 @@ class StockSchemaTest extends TestCase
 
     public function test_rack_with_inventory_cannot_be_deleted(): void
     {
-        Sanctum::actingAs(User::factory()->create());
+        $this->actingAsUser(User::factory()->create());
         $inventory = Inventory::factory()->create();
 
         $this->deleteJson("/api/racks/{$inventory->rack_id}")->assertConflict();

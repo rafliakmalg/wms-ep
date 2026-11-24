@@ -9,9 +9,11 @@ use App\Models\Branch;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class BranchController extends Controller
 {
+    #[Authorize('branch.read')]
     public function index(IndexBranchRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -35,6 +37,7 @@ class BranchController extends Controller
         return BranchResource::collection($branches);
     }
 
+    #[Authorize('branch.create')]
     public function store(BranchRequest $request): BranchResource
     {
         $param = $request->validated();
@@ -50,11 +53,13 @@ class BranchController extends Controller
         return BranchResource::make($branch)->additional(['message' => $message]);
     }
 
+    #[Authorize('branch.read')]
     public function show(Branch $branch): BranchResource
     {
         return BranchResource::make($branch);
     }
 
+    #[Authorize('branch.update')]
     public function update(BranchRequest $request, Branch $branch): BranchResource
     {
         $param = $request->validated();
@@ -69,6 +74,7 @@ class BranchController extends Controller
         return BranchResource::make($branch)->additional(['message' => $message]);
     }
 
+    #[Authorize('branch.delete')]
     public function destroy(Branch $branch): JsonResponse
     {
         $branch->delete();

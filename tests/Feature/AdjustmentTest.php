@@ -10,7 +10,6 @@ use App\Models\Product;
 use App\Models\Rack;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class AdjustmentTest extends TestCase
@@ -20,7 +19,7 @@ class AdjustmentTest extends TestCase
     private function signIn(): User
     {
         $user = User::factory()->create();
-        Sanctum::actingAs($user);
+        $this->actingAsUser($user);
 
         return $user;
     }

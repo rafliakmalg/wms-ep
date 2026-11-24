@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('handover_logs', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->foreignId('custody_from_id')->nullable()->constrained('users')->restrictOnDelete();
-            $table->foreignId('custody_to_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
+            $table->foreignId('custody_from_id')->nullable();
+            $table->foreignId('custody_to_id')->nullable();
             $table->foreignId('handover_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable();
             $table->string('action');
             $table->text('note')->nullable();
         });

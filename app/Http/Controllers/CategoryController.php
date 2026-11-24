@@ -9,9 +9,11 @@ use App\Models\Category;
 use App\Support\Filter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 
 class CategoryController extends Controller
 {
+    #[Authorize('category.read')]
     public function index(IndexCategoryRequest $request): AnonymousResourceCollection
     {
         $param = $request->validated();
@@ -32,6 +34,7 @@ class CategoryController extends Controller
         return CategoryResource::collection($categories);
     }
 
+    #[Authorize('category.create')]
     public function store(CategoryRequest $request): CategoryResource
     {
         $param = $request->validated();
@@ -47,11 +50,13 @@ class CategoryController extends Controller
         return CategoryResource::make($category)->additional(['message' => $message]);
     }
 
+    #[Authorize('category.read')]
     public function show(Category $category): CategoryResource
     {
         return CategoryResource::make($category);
     }
 
+    #[Authorize('category.update')]
     public function update(CategoryRequest $request, Category $category): CategoryResource
     {
         $param = $request->validated();
@@ -66,6 +71,7 @@ class CategoryController extends Controller
         return CategoryResource::make($category)->additional(['message' => $message]);
     }
 
+    #[Authorize('category.delete')]
     public function destroy(Category $category): JsonResponse
     {
         $category->delete();

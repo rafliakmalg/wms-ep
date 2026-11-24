@@ -16,12 +16,12 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('adjustment_id')->nullable()->constrained()->restrictOnDelete();
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('created_by_id')->nullable();
             $table->foreignId('handover_id')->nullable()->constrained()->restrictOnDelete();
             $table->foreignId('product_id')->constrained()->restrictOnDelete();
             $table->foreignId('rack_from_id')->nullable()->constrained('racks')->restrictOnDelete();
             $table->foreignId('rack_to_id')->nullable()->constrained('racks')->restrictOnDelete();
-            $table->foreignId('updated_by_id')->nullable()->constrained('users')->restrictOnDelete();
+            $table->foreignId('updated_by_id')->nullable();
             $table->text('note')->nullable();
             $table->decimal('quantity', 15, 3);
 
