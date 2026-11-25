@@ -49,6 +49,11 @@ class AccessTest extends TestCase
         }
     }
 
+    public function test_guest_without_json_accept_header_gets_401_instead_of_a_server_error(): void
+    {
+        $this->get('/api/branches')->assertUnauthorized();
+    }
+
     public function test_user_without_permissions_is_forbidden_on_collection_endpoints(): void
     {
         $this->actingAsUser(User::factory()->create(), []);
